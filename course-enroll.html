@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enroll in a Course</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375; --hover-bg: #F3F4F6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .enrollment-container { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 2.5rem; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); text-align: center; max-width: 450px; width: 100%; }
+        .enrollment-container h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .enrollment-container p { color: var(--text-secondary); margin-bottom: 2rem; }
+        .form-field { margin-bottom: 1.5rem; text-align: left; }
+        .form-field label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
+        .form-field select { width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); font-family: 'IBM Plex Sans', sans-serif; font-size: 1rem; background-color: #FFFFFF; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-field select:focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgba(51, 195, 117, 0.2); }
+        .btn { width: 100%; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; }
+        .btn-primary { background: var(--text-primary); color: #FFFFFF; }
+        .btn-primary:hover { background: #001A19; }
+        .btn:disabled { background-color: #D1D5DB; cursor: not-allowed; }
+        .btn-google { background-color: #4285F4; color: #FFFFFF; }
+        .btn-google:hover { background-color: #357ae8; }
+        .user-info { font-weight: 500; margin-bottom: 2rem; }
+        .status-message { margin-top: 1rem; font-weight: 500; }
+        .status-message.success { color: var(--brand-green); }
+        .status-message.error { color: #EF4444; }
+    </style>
+</head>
+<body>
+    <div class="enrollment-container">
+        <h1>Enroll in a Course</h1>
+        <p>Select a course below to begin your learning journey.</p>
+        
+        <div id="auth-section">
+            <button class="btn btn-google" id="login-btn"><i class='bx bxl-google'></i> Sign In with Google</button>
+        </div>
+        
+        <div id="form-section" style="display: none;">
+            <p class="user-info">Welcome, <span id="user-name"></span>!</p>
+            <form id="enrollment-form">
+                <div class="form-field">
+                    <label for="course-select">Choose a Course</label>
+                    <select id="course-select" required></select>
+                </div>
+                <button type="submit" class="btn btn-primary" id="confirm-btn">Confirm Enrollment</button>
+            </form>
+        </div>
+
+        <div id="status-message" class="status-message"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+                authDomain: "exam-2e799.firebaseapp.com",
+                projectId: "exam-2e799",
+                storageBucket: "exam-2e799.firebasestorage.app",
+                messagingSenderId: "472506328501",
+                appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+                measurementId: "G-NX21HT3JKT"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            const dom = {
+                authSection: document.getElementById('auth-section'),
+                formSection: document.getElementById('form-section'),
+                loginBtn: document.getElementById('login-btn'),
+                userName: document.getElementById('user-name'),
+                courseSelect: document.getElementById('course-select'),
+                confirmBtn: document.getElementById('confirm-btn'),
+                statusMessage: document.getElementById('status-message')
+            };
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    dom.authSection.style.display = 'none';
+                    dom.userName.textContent = user.displayName;
+                    dom.formSection.style.display = 'block';
+                    await fetchAndPopulateCourses(user.uid);
+                } else {
+                    dom.authSection.style.display = 'block';
+                    dom.formSection.style.display = 'none';
+                }
+            });
+
+            const fetchAndPopulateCourses = async (userId) => {
+                dom.courseSelect.innerHTML = '<option value="">Loading courses...</option>';
+                dom.courseSelect.disabled = true;
+
+                const [coursesSnap, enrollmentsSnap, subjectsSnap] = await Promise.all([
+                    db.collection('courses').get(),
+                    db.collection('enrollments').where('userId', '==', userId).get(),
+                    db.collection('subjects').get()
+                ]);
+
+                const enrolledCourseIds = new Set(enrollmentsSnap.docs.map(doc => doc.data().courseId));
+                const subjects = new Map(subjectsSnap.docs.map(doc => [doc.id, doc.data()]));
+
+                dom.courseSelect.innerHTML = '<option value="">-- Select a course --</option>';
+                coursesSnap.forEach(doc => {
+                    const course = doc.data();
+                    const subject = subjects.get(course.subjectId);
+                    if (subject) {
+                        const option = document.createElement('option');
+                        option.value = doc.id;
+                        option.textContent = course.name;
+                        option.dataset.subjectId = course.subjectId;
+                        option.dataset.subjectPage = subject.page;
+                        
+                        if (enrolledCourseIds.has(doc.id)) {
+                            option.textContent += ' (Enrolled)';
+                            option.disabled = true;
+                        }
+                        dom.courseSelect.appendChild(option);
+                    }
+                });
+                dom.courseSelect.disabled = false;
+            };
+
+            const signIn = () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider).catch(error => console.error("Sign-in error", error));
+            };
+
+            dom.loginBtn.addEventListener('click', signIn);
+
+            document.getElementById('enrollment-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const user = auth.currentUser;
+                if (!user) {
+                    dom.statusMessage.textContent = 'Please sign in to enroll.';
+                    dom.statusMessage.className = 'status-message error';
+                    return;
+                }
+
+                const selectedOption = dom.courseSelect.options[dom.courseSelect.selectedIndex];
+                const courseId = selectedOption.value;
+                const courseName = selectedOption.textContent;
+                const subjectId = selectedOption.dataset.subjectId;
+                const subjectPage = selectedOption.dataset.subjectPage;
+
+                if (!courseId) {
+                    dom.statusMessage.textContent = 'Please select a valid course.';
+                    dom.statusMessage.className = 'status-message error';
+                    return;
+                }
+
+                dom.confirmBtn.disabled = true;
+                dom.confirmBtn.textContent = 'Enrolling...';
+
+                try {
+                    await db.collection('enrollments').add({
+                        userId: user.uid,
+                        courseId: courseId,
+                        courseName: courseName,
+                        subjectId: subjectId,
+                        subjectPage: subjectPage,
+                        enrolledAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    dom.statusMessage.textContent = 'Enrollment successful! Redirecting...';
+                    dom.statusMessage.className = 'status-message success';
+                    setTimeout(() => { window.location.href = subjectPage; }, 2000);
+
+                } catch (error) {
+                    console.error("Enrollment error: ", error);
+                    dom.statusMessage.textContent = 'An error occurred. Please try again.';
+                    dom.statusMessage.className = 'status-message error';
+                    dom.confirmBtn.disabled = false;
+                    dom.confirmBtn.textContent = 'Confirm Enrollment';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
