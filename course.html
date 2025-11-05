@@ -45,20 +45,10 @@
         .main-area { display: flex; flex-direction: column; overflow-y: auto; }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-
-        .continue-learning-widget { background-color: var(--text-primary); color: #FFFFFF; padding: 2.5rem 3rem; border-bottom: 1px solid #001a193d; }
-        .continue-learning-widget h4 { font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, 0.7); margin-bottom: 0.5rem; }
-        .continue-learning-widget h3 { font-size: 1.75rem; font-weight: 600; margin-bottom: 1.5rem; }
-        .progress-container { margin-bottom: 1.5rem; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 500; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.75rem; }
-        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; }
-        .progress { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.5s ease; }
-        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .btn-continue:hover { background-color: #2da967; }
-        .btn-continue i { font-size: 1.2rem; }
-
-        .content-body { padding: 2rem 3rem 3rem 3rem; }
+        .hero-section { background-color: var(--text-primary); color: #FFFFFF; padding: 2.5rem 3rem; }
+        .content-body { padding: 2rem 3rem 3rem 3rem; display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: flex-start; }
         .main-content { min-width: 0; }
+        .content-sidebar { position: sticky; top: calc(2rem + 73px); }
         .pill-nav-container { display: flex; justify-content: flex-start; margin-bottom: 2rem; }
         .pill-nav { position: relative; display: inline-flex; background-color: var(--hover-bg); border-radius: 99px; padding: 0.25rem; }
         .nav-tab { border: none; background: none; padding: 0.5rem 1.25rem; font-size: 1rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); border-radius: 99px; position: relative; z-index: 2; transition: color 0.3s ease; }
@@ -85,30 +75,51 @@
         .card[data-status="locked"] { opacity: 0.7; background-color: var(--hover-bg); pointer-events: none; }
         .card-prefix--locked { background-color: #E5E7EB; color: var(--text-secondary); }
         .card-button--locked { background-color: var(--border-color); color: var(--text-secondary); cursor: not-allowed; }
-        
-        .menu-toggle, .sidebar-close-btn { display: none; }
+        .sidebar-card { background-color: var(--widget-bg); border-radius: 1rem; padding: 1.5rem; border: 2px solid var(--border-color); }
+        .sidebar-card h4 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .stat-item { text-align: center; } .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+        .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
+        .menu-toggle { display: none; } .sidebar-close-btn { display: none; }
+        .spinner { width: 48px; height: 48px; border: 5px solid rgba(255,255,255,0.2); border-bottom-color: var(--brand-green); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-text { font-size: 1.125rem; font-weight: 500; color: rgba(255,255,255,0.7); margin-top: 1.5rem; }
+        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn-continue:hover { background-color: #2da967; }
+        .hero-featured-course { display: flex; justify-content: space-between; align-items: center; gap: 2rem; flex-wrap: wrap; }
+        .hero-fc-info { flex-grow: 1; }
+        .hero-fc-info h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, 0.7); margin-bottom: 0.5rem; }
+        .hero-fc-info h3 { font-size: 2rem; font-weight: 600; margin-bottom: 1.25rem; }
+        .hero-fc-progress { display: flex; align-items: center; gap: 1rem; }
+        .hero-fc-progress .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .hero-fc-progress .progress { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .hero-fc-progress span { font-size: 0.9rem; font-weight: 500; }
+        .hero-fc-action { flex-shrink: 0; }
+        .enrollment-prompt { text-align: center; }
+        .enrollment-prompt h3 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .enrollment-prompt p { color: rgba(255, 255, 255, 0.7); margin-bottom: 1.5rem; line-height: 1.6; }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
         .skeleton-line { height: 14px; border-radius: 4px; }
         .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
-
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
             .sidebar.active { transform: translateX(0); }
             .main-header { padding: 1.25rem 1.5rem; } .main-header h1 { font-size: 1.25rem; }
-            .continue-learning-widget { padding: 2rem 1.5rem; } .continue-learning-widget h3 { font-size: 1.5rem; }
+            .hero-section { padding: 2rem 1.5rem; }
             .content-body { grid-template-columns: 1fr; padding: 1.5rem; }
+            .content-sidebar { position: static; width: 100%; }
             .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; }
             .menu-toggle:hover { background-color: var(--hover-bg); }
             .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; transition: color 0.2s ease; }
             .sidebar-close-btn:hover { color: #b91c1c; }
-            .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
             .overlay.active { opacity: 1; pointer-events: auto; }
             .pill-nav-container { justify-content: center; }
             .chapter-title { font-size: 1.25rem; }
-            .card-title { font-size: 0.95rem; }
+            .hero-fc-info h3 { font-size: 1.5rem; }
         }
     </style>
 </head>
@@ -117,7 +128,7 @@
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
-            <div class="sidebar-header"><img src="" alt="IHTNAS Logo" class="logo-image"></div>
+            <div class="sidebar-header"><img src="" alt="Ihtnas Logo" class="logo-image"></div>
             <nav class="main-nav">
                 <ul>
                     <li><a href="dashboard.html"><i class='bx bx-home-alt'></i> Dashboard</a></li>
@@ -156,43 +167,38 @@
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1 id="header-title"></h1>
+                <h1>Course & Content</h1>
             </header>
             <div id="skeleton-loader">
-                <section class="continue-learning-widget">
-                    <div class="skeleton skeleton-line" style="width: 40%; height: 12px; background-color: rgba(255,255,255,0.2); margin-bottom: 1rem;"></div>
-                    <div class="skeleton skeleton-line" style="width: 70%; height: 28px; background-color: rgba(255,255,255,0.2); margin-bottom: 2rem;"></div>
-                    <div class="skeleton skeleton-line" style="width: 100%; height: 8px; background-color: rgba(255,255,255,0.2);"></div>
-                </section>
-                <div class="content-body" style="grid-template-columns: 1fr;">
-                    <div class="main-content">
-                        <div class="pill-nav-container">
-                            <div class="skeleton-pill-nav">
-                                <div class="skeleton-pill"></div>
-                                <div class="skeleton-pill"></div>
-                            </div>
-                        </div>
-                        <div class="chapter-group">
-                            <div class="skeleton skeleton-line" style="width: 250px; height: 24px; margin-bottom: 1.5rem; border-radius: 8px;"></div>
-                        </div>
+                <section class="hero-section">
+                    <div style="text-align: center;">
+                        <div class="spinner"></div>
+                        <p class="status-text">Finding your course...</p>
                     </div>
-                </div>
+                </section>
             </div>
             <div id="real-content" style="display:none; contents;">
-                <section class="continue-learning-widget" id="continue-learning-widget">
-                    <h4 id="continue-learning-subtitle"></h4>
-                    <h3 id="continue-learning-title"></h3>
-                    <div class="progress-container">
-                        <div class="progress-info">
-                            <span id="progress-label">Overall Progress</span>
-                            <span id="progress-percent-text">0%</span>
+                <section class="hero-section">
+                    <div class="container" id="hero-container">
+                        <div id="hero-featured-course" style="display: none;">
+                           <div class="hero-fc-info">
+                                <h4>CONTINUE LEARNING</h4>
+                                <h3 id="hero-course-title"></h3>
+                                <div class="hero-fc-progress">
+                                    <div class="progress-bar"><div class="progress" id="hero-course-progress"></div></div>
+                                    <span id="hero-course-percent"></span>
+                                </div>
+                            </div>
+                            <div class="hero-fc-action">
+                                <a href="#" class="btn-continue" id="hero-course-link">Continue</a>
+                            </div>
                         </div>
-                        <div class="progress-bar"><div class="progress" id="continue-learning-progress"></div></div>
+                        <div class="enrollment-prompt" id="hero-enrollment-prompt" style="display: none;">
+                            <h3>Welcome to the Portal!</h3>
+                            <p>You are not yet enrolled in any courses. Enroll now to start your learning journey.</p>
+                            <a href="course-enroll.html" class="btn-continue">Enroll in a Course</a>
+                        </div>
                     </div>
-                    <a href="#" class="btn-continue" id="continue-learning-link">
-                        <i class='bx bx-play'></i>
-                        <span>Continue</span>
-                    </a>
                 </section>
                 <div class="content-body">
                     <div class="main-content">
@@ -206,11 +212,20 @@
                         <div id="courseContent" class="content-section active"></div>
                         <div id="assessmentsContent" class="content-section"></div>
                     </div>
+                    <aside class="content-sidebar">
+                        <div id="sidebarCard" class="sidebar-card">
+                            <h4>Course Progress</h4>
+                            <div class="stat-grid">
+                                <div class="stat-item"><div class="stat-value" id="stat-lessons">0/0</div><div class="stat-label">Items</div></div>
+                                <div class="stat-item"><div class="stat-value" id="stat-completed">0%</div><div class="stat-label">Completed</div></div>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </main>
     </div>
-
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -232,7 +247,6 @@
             const DEFAULT_AVATAR = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWxmiQqKsGu4P4FulnB-hDH6_RyTFPzHo67Q&s';
             
             let currentUser = null;
-            let courseId = null;
 
             const setupEventListeners = () => {
                 document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -256,8 +270,9 @@
                         tabs.forEach(t => t.classList.remove('active'));
                         e.currentTarget.classList.add('active');
                         moveSlider(e.currentTarget);
-                        document.getElementById('courseContent').classList.toggle('active', e.currentTarget.id === 'courseTab');
-                        document.getElementById('assessmentsContent').classList.toggle('active', e.currentTarget.id === 'assessmentsTab');
+                        const isCourseTab = e.currentTarget.id === 'courseTab';
+                        document.getElementById('courseContent').classList.toggle('active', isCourseTab);
+                        document.getElementById('assessmentsContent').classList.toggle('active', !isCourseTab);
                     });
                 });
             };
@@ -288,21 +303,25 @@
                     if (!userDoc.exists) { window.location.href = 'index.html'; return; }
                     updateProfileUI(userDoc.data());
                     
-                    const urlParams = new URLSearchParams(window.location.search);
-                    courseId = urlParams.get('id');
-
+                    let courseId = new URLSearchParams(window.location.search).get('id');
+                    
                     if (!courseId) {
                         const enrollmentsQuery = await db.collection('enrollments').where('userId', '==', user.uid).orderBy('enrolledAt', 'desc').limit(1).get();
                         if (!enrollmentsQuery.empty) {
                             const latestEnrollment = enrollmentsQuery.docs[0].data();
                             courseId = latestEnrollment.courseId;
                             window.history.replaceState({}, '', `?id=${courseId}`);
+                            await loadAndRenderContent(user.uid, courseId);
                         } else {
-                            window.location.href = 'course-enroll.html';
-                            return;
+                            document.getElementById('skeleton-loader').style.display = 'none';
+                            document.getElementById('real-content').style.display = 'contents';
+                            document.getElementById('hero-enrollment-prompt').style.display = 'block';
+                            document.getElementById('hero-featured-course').style.display = 'none';
+                            document.querySelector('.content-body').style.display = 'none';
                         }
+                    } else {
+                        await loadAndRenderContent(user.uid, courseId);
                     }
-                    await loadAndRenderContent(user.uid, courseId);
                 } else {
                     window.location.href = 'index.html';
                 }
@@ -324,16 +343,18 @@
                     const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     const curriculum = courseData.curriculum || [];
                     
-                    document.getElementById('header-title').textContent = courseData.name;
+                    document.getElementById('hero-enrollment-prompt').style.display = 'none';
+                    document.getElementById('hero-featured-course').style.display = 'flex';
 
-                    if (curriculum.length === 0 || curriculum.every(c => c.items.length === 0)) {
-                        renderEmptyState(courseData);
+                    renderHero(courseData, curriculum, progressData);
+                    
+                    if (curriculum.length === 0) {
+                        document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
+                        document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
                     } else {
-                        renderContinueLearningWidget(courseData, progressData);
                         renderCurriculum(courseData, progressData);
                     }
-                    renderAssessments(courseId);
-
+                    renderSidebarStats(curriculum, progressData);
                 } catch(error) {
                     console.error("Error loading content:", error);
                     document.querySelector('.main-area').innerHTML = '<h1>Error loading course content.</h1>';
@@ -349,49 +370,19 @@
                 }
             };
 
-            const renderEmptyState = (courseData) => {
-                const widget = document.getElementById('continue-learning-widget');
-                widget.innerHTML = `
-                    <h4>${courseData.name}</h4>
-                    <h3>Content Coming Soon</h3>
-                    <p style="color: rgba(255,255,255,0.7); margin-bottom: 0;">New lessons and assessments are being prepared and will be available shortly. Check back soon!</p>
-                `;
-                document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No curriculum items available yet.</p>';
-                document.getElementById('assessmentsContent').innerHTML = '<p style-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
-            };
-
-            const renderContinueLearningWidget = (courseData, progressData) => {
-                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
-                if (allItems.length === 0) {
-                    renderEmptyState(courseData);
-                    return;
-                }
-
-                const completedCount = allItems.filter(item => progressData[item.id]).length;
-                const totalCount = allItems.length;
-                const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-                const firstUncompleted = allItems.find(item => !progressData[item.id]);
-
-                document.getElementById('continue-learning-progress').style.width = `${percent}%`;
-                document.getElementById('progress-percent-text').textContent = `${percent}% Complete`;
-                document.getElementById('progress-label').textContent = `${completedCount} of ${totalCount} items completed`;
-
-                const continueLink = document.getElementById('continue-learning-link');
+            const renderHero = (courseData, curriculum, progressData) => {
+                document.getElementById('hero-course-title').textContent = courseData.name;
                 
-                if (firstUncompleted) {
-                    document.getElementById('continue-learning-subtitle').textContent = 'UP NEXT';
-                    document.getElementById('continue-learning-title').textContent = firstUncompleted.title;
-                    continueLink.href = `course-view.html?id=${courseId}`;
-                    continueLink.querySelector('span').textContent = 'Continue';
-                } else {
-                    document.getElementById('continue-learning-subtitle').textContent = 'CONGRATULATIONS!';
-                    document.getElementById('continue-learning-title').textContent = 'Course Completed';
-                    continueLink.href = `course.html`;
-                    continueLink.querySelector('span').textContent = 'Review Course';
-                    document.getElementById('progress-label').textContent = "You've completed all items!";
-                }
+                const allItems = curriculum.flatMap(c => c.items);
+                const totalItems = allItems.length;
+                const completedItems = allItems.filter(item => progressData[item.id]).length;
+                const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+                
+                document.getElementById('hero-course-progress').style.width = `${percent}%`;
+                document.getElementById('hero-course-percent').textContent = `${percent}%`;
+                document.getElementById('hero-course-link').href = `course-view.html?id=${courseData.id}`;
             };
-            
+
             const renderCurriculum = (courseData, progressData) => {
                 const container = document.getElementById('courseContent');
                 container.innerHTML = '';
@@ -440,81 +431,15 @@
                 });
             };
 
-            const renderAssessments = async (courseId) => {
-                const container = document.getElementById('assessmentsContent');
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Loading assessments...</p>';
+            const renderSidebarStats = (curriculum, progressData) => {
+                const allItems = curriculum.flatMap(c => c.items);
+                const totalItems = allItems.length;
+                const completedItems = allItems.filter(item => progressData[item.id]).length;
+                const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
                 
-                const [examsSnapshot, codeAssignmentsSnapshot, scoresSnapshot, codeScoresSnapshot] = await Promise.all([
-                    db.collection('exams').where('courseId', '==', courseId).get(),
-                    db.collection('codeAssignments').where('courseId', '==', courseId).get(),
-                    db.collection('scores').where('userId', '==', currentUser.uid).where('courseId', '==', courseId).get(),
-                    db.collection('codeAssignmentScores').where('userId', '==', currentUser.uid).where('courseId', '==', courseId).get()
-                ]);
-
-                const userScores = new Map(scoresSnapshot.docs.map(doc => [doc.data().examId, doc.data()]));
-                const userCodeScores = new Map(codeScoresSnapshot.docs.map(doc => [doc.data().assignmentId, doc.data()]));
-                
-                let assessments = [];
-                examsSnapshot.forEach(doc => assessments.push({ type: 'mcq', id: doc.id, data: doc.data(), createdAt: doc.data().createdAt || { seconds: 0 } }));
-                codeAssignmentsSnapshot.forEach(doc => assessments.push({ type: 'code', id: doc.id, data: doc.data(), createdAt: doc.data().createdAt || { seconds: 0 } }));
-                assessments.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-
-                if (assessments.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available for this course yet.</p>';
-                    return;
-                }
-
-                container.innerHTML = '';
-                const listContainer = document.createElement('div');
-                listContainer.className = 'content-list';
-
-                assessments.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    let meta = '', buttonText = '', isCompleted = false, isLocked = false, scoreData = null;
-
-                    if (item.type === 'mcq') {
-                        scoreData = userScores.get(item.id);
-                        isLocked = item.data.isLocked;
-                        if (scoreData) {
-                            isCompleted = true;
-                            const percentage = scoreData.totalPoints > 0 ? Math.round((scoreData.pointsReceived / scoreData.totalPoints) * 100) : 0;
-                            meta = `MCQ Exam • Score: ${percentage}%`;
-                            buttonText = 'View Results';
-                        } else {
-                            meta = `MCQ Exam • ${item.data.questions.length} Questions • ${item.data.duration / 60} min`;
-                            buttonText = isLocked ? 'Locked' : 'Start Exam';
-                            if (!isLocked) card.onclick = () => window.location.href = `exam.html?id=${item.id}`;
-                        }
-                    } else if (item.type === 'code') {
-                        scoreData = userCodeScores.get(item.id);
-                        isLocked = item.data.isLocked;
-                        if(scoreData){
-                            isCompleted = true;
-                            const percentage = scoreData.totalScorePossible > 0 ? Math.round((scoreData.totalScoreObtained / scoreData.totalScorePossible) * 100) : 0;
-                            meta = `Code Assignment • Score: ${percentage}%`;
-                            buttonText = 'View Results';
-                        } else {
-                            meta = `Code Assignment • ${item.data.duration / 60} min`;
-                            buttonText = isLocked ? 'Locked' : 'Start Code';
-                            if (!isLocked) card.onclick = () => window.location.href = `code.html?id=${item.id}`;
-                        }
-                    }
-                    
-                    if(isLocked && !isCompleted) card.dataset.status = 'locked';
-                    const iconClass = item.type === 'mcq' ? 'bxs-file-doc' : 'bxs-code-alt';
-                    card.innerHTML = `<div class="card-prefix card-prefix--default"><i class='bx ${iconClass}'></i></div><div class="card-info"><p class="card-title">${item.data.name}</p><p class="card-meta">${meta}</p></div><button class="card-button ${isLocked && !isCompleted ? 'card-button--locked' : ''}">${buttonText}</button>`;
-                    
-                    if (isCompleted) {
-                        card.dataset.status = 'completed';
-                        card.querySelector('.card-prefix').classList.replace('card-prefix--default', 'card-prefix--completed');
-                        card.querySelector('.card-info').insertAdjacentHTML('afterend', `<div class="card-status-icon"><i class="bx bxs-check-circle"></i></div>`);
-                    }
-                    listContainer.appendChild(card);
-                });
-                container.appendChild(listContainer);
+                document.getElementById('stat-lessons').textContent = `${completedItems}/${totalItems}`;
+                document.getElementById('stat-completed').textContent = `${progressPercent}%`;
             };
-
         });
     </script>
 </body>
