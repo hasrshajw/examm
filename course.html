@@ -45,7 +45,15 @@
         .main-area { display: flex; flex-direction: column; overflow-y: auto; }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .hero-section { background-color: var(--text-primary); color: #FFFFFF; padding: 2.5rem 3rem; }
+        .hero-section { background-color: var(--text-primary); color: #FFFFFF; padding: 3rem; }
+        .hero-title { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .fc-progress-container { margin-top: 2rem; }
+        .fc-progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .progress { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.5s ease; }
+        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
+        .btn-continue:hover { background-color: #2da967; }
+        .btn-continue .btn-icon { font-size: 1.2rem; }
         .content-body { padding: 2rem 3rem 3rem 3rem; display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: flex-start; }
         .main-content { min-width: 0; }
         .content-sidebar { position: sticky; top: calc(2rem + 73px); }
@@ -81,34 +89,22 @@
         .stat-item { text-align: center; } .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
         .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
         .menu-toggle { display: none; } .sidebar-close-btn { display: none; }
-        .spinner { width: 48px; height: 48px; border: 5px solid rgba(255,255,255,0.2); border-bottom-color: var(--brand-green); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .status-text { font-size: 1.125rem; font-weight: 500; color: rgba(255,255,255,0.7); margin-top: 1.5rem; }
-        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .btn-continue:hover { background-color: #2da967; }
-        .hero-featured-course { display: flex; justify-content: space-between; align-items: center; gap: 2rem; flex-wrap: wrap; }
-        .hero-fc-info { flex-grow: 1; }
-        .hero-fc-info h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, 0.7); margin-bottom: 0.5rem; }
-        .hero-fc-info h3 { font-size: 2rem; font-weight: 600; margin-bottom: 1.25rem; }
-        .hero-fc-progress { display: flex; align-items: center; gap: 1rem; }
-        .hero-fc-progress .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; }
-        .hero-fc-progress .progress { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
-        .hero-fc-progress span { font-size: 0.9rem; font-weight: 500; }
-        .hero-fc-action { flex-shrink: 0; }
-        .enrollment-prompt { text-align: center; }
-        .enrollment-prompt h3 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .enrollment-prompt p { color: rgba(255, 255, 255, 0.7); margin-bottom: 1.5rem; line-height: 1.6; }
+        .enrollment-container { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 2.5rem; box-shadow: var(--shadow-lg); text-align: center; max-width: 450px; width: 100%; margin: 4rem auto; }
+        .enrollment-container h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .enrollment-container p { color: var(--text-secondary); margin-bottom: 2rem; }
+        
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
         .skeleton-line { height: 14px; border-radius: 4px; }
         .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
             .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
             .sidebar.active { transform: translateX(0); }
             .main-header { padding: 1.25rem 1.5rem; } .main-header h1 { font-size: 1.25rem; }
-            .hero-section { padding: 2rem 1.5rem; }
+            .hero-section { padding: 2rem 1.5rem; } .hero-title { font-size: 2.25rem; }
             .content-body { grid-template-columns: 1fr; padding: 1.5rem; }
             .content-sidebar { position: static; width: 100%; }
             .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; }
@@ -118,8 +114,13 @@
             .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
             .overlay.active { opacity: 1; pointer-events: auto; }
             .pill-nav-container { justify-content: center; }
+            .stat-value { font-size: 1.5rem; }
+            .stat-label { font-size: 0.8rem; }
             .chapter-title { font-size: 1.25rem; }
-            .hero-fc-info h3 { font-size: 1.5rem; }
+            .card { padding: 0.6rem; }
+            .card-title { font-size: 0.95rem; }
+            .card-meta { font-size: 0.8rem; }
+            .card-button { font-size: 0.85rem; min-width: 110px; }
         }
     </style>
 </head>
@@ -167,40 +168,42 @@
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1>Course & Content</h1>
+                <h1 id="header-title">Course & Content</h1>
             </header>
             <div id="skeleton-loader">
                 <section class="hero-section">
-                    <div style="text-align: center;">
-                        <div class="spinner"></div>
-                        <p class="status-text">Finding your course...</p>
-                    </div>
-                </section>
-            </div>
-            <div id="real-content" style="display:none; contents;">
-                <section class="hero-section">
-                    <div class="container" id="hero-container">
-                        <div id="hero-featured-course" style="display: none;">
-                           <div class="hero-fc-info">
-                                <h4>CONTINUE LEARNING</h4>
-                                <h3 id="hero-course-title"></h3>
-                                <div class="hero-fc-progress">
-                                    <div class="progress-bar"><div class="progress" id="hero-course-progress"></div></div>
-                                    <span id="hero-course-percent"></span>
-                                </div>
-                            </div>
-                            <div class="hero-fc-action">
-                                <a href="#" class="btn-continue" id="hero-course-link">Continue</a>
-                            </div>
-                        </div>
-                        <div class="enrollment-prompt" id="hero-enrollment-prompt" style="display: none;">
-                            <h3>Welcome to the Portal!</h3>
-                            <p>You are not yet enrolled in any courses. Enroll now to start your learning journey.</p>
-                            <a href="course-enroll.html" class="btn-continue">Enroll in a Course</a>
-                        </div>
-                    </div>
+                     <h1 class="hero-title"><span class="skeleton" style="width: 350px; height: 48px; display: inline-block; border-radius: 8px; background-color: rgba(255,255,255,0.1);"></span></h1>
+                     <div class="fc-progress-container">
+                         <div class="skeleton-line" style="width: 100%; height: 8px; background-color: rgba(255,255,255,0.2);"></div>
+                     </div>
                 </section>
                 <div class="content-body">
+                    <div class="main-content">
+                        <div class="pill-nav-container">
+                            <div class="skeleton-pill-nav">
+                                <div class="skeleton-pill"></div>
+                                <div class="skeleton-pill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="real-content" style="display:none;">
+                 <section class="hero-section" id="hero-section" style="display: none;">
+                    <h1 class="hero-title" id="hero-title"></h1>
+                    <div class="fc-progress-container">
+                        <div class="fc-progress-info">
+                            <span id="progress-text-details">0/0 Items Completed</span>
+                            <span id="progress-text-percent">0%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress" id="hero-progress-bar"></div></div>
+                    </div>
+                    <a href="#" class="btn-continue" id="hero-continue-btn">
+                        <span id="continue-btn-text">Continue</span>
+                        <i class='bx bx-play-circle btn-icon'></i>
+                    </a>
+                </section>
+                <div class="content-body" id="content-body" style="display: none;">
                     <div class="main-content">
                         <div class="pill-nav-container">
                             <div class="pill-nav">
@@ -216,11 +219,16 @@
                         <div id="sidebarCard" class="sidebar-card">
                             <h4>Course Progress</h4>
                             <div class="stat-grid">
-                                <div class="stat-item"><div class="stat-value" id="stat-lessons">0/0</div><div class="stat-label">Items</div></div>
+                                <div class="stat-item"><div class="stat-value" id="stat-lessons">0/0</div><div class="stat-label">Lessons</div></div>
                                 <div class="stat-item"><div class="stat-value" id="stat-completed">0%</div><div class="stat-label">Completed</div></div>
                             </div>
                         </div>
                     </aside>
+                </div>
+                <div class="enrollment-container" id="enrollment-prompt" style="display: none;">
+                    <h1>Welcome to the Portal!</h1>
+                    <p>You are not yet enrolled in any courses. Enroll now to start your learning journey.</p>
+                    <a href="course-enroll.html" class="btn-continue">Enroll in a Course</a>
                 </div>
             </div>
         </main>
@@ -247,6 +255,7 @@
             const DEFAULT_AVATAR = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWxmiQqKsGu4P4FulnB-hDH6_RyTFPzHo67Q&s';
             
             let currentUser = null;
+            let courseId = null;
 
             const setupEventListeners = () => {
                 document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -303,25 +312,24 @@
                     if (!userDoc.exists) { window.location.href = 'index.html'; return; }
                     updateProfileUI(userDoc.data());
                     
-                    let courseId = new URLSearchParams(window.location.search).get('id');
-                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    courseId = urlParams.get('id');
+
                     if (!courseId) {
                         const enrollmentsQuery = await db.collection('enrollments').where('userId', '==', user.uid).orderBy('enrolledAt', 'desc').limit(1).get();
                         if (!enrollmentsQuery.empty) {
                             const latestEnrollment = enrollmentsQuery.docs[0].data();
                             courseId = latestEnrollment.courseId;
                             window.history.replaceState({}, '', `?id=${courseId}`);
-                            await loadAndRenderContent(user.uid, courseId);
                         } else {
                             document.getElementById('skeleton-loader').style.display = 'none';
-                            document.getElementById('real-content').style.display = 'contents';
-                            document.getElementById('hero-enrollment-prompt').style.display = 'block';
-                            document.getElementById('hero-featured-course').style.display = 'none';
-                            document.querySelector('.content-body').style.display = 'none';
+                            document.getElementById('real-content').style.display = 'block';
+                            document.getElementById('enrollment-prompt').style.display = 'block';
+                            document.getElementById('main-header').style.display = 'none';
+                            return;
                         }
-                    } else {
-                        await loadAndRenderContent(user.uid, courseId);
                     }
+                    await loadAndRenderContent(user.uid, courseId);
                 } else {
                     window.location.href = 'index.html';
                 }
@@ -342,25 +350,26 @@
                     const courseData = courseDoc.data();
                     const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     const curriculum = courseData.curriculum || [];
-                    
-                    document.getElementById('hero-enrollment-prompt').style.display = 'none';
-                    document.getElementById('hero-featured-course').style.display = 'flex';
 
-                    renderHero(courseData, curriculum, progressData);
+                    document.getElementById('header-title').textContent = courseData.name;
                     
                     if (curriculum.length === 0) {
                         document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
                         document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
                     } else {
+                        renderHero(courseData, progressData);
                         renderCurriculum(courseData, progressData);
                     }
                     renderSidebarStats(curriculum, progressData);
+
                 } catch(error) {
                     console.error("Error loading content:", error);
                     document.querySelector('.main-area').innerHTML = '<h1>Error loading course content.</h1>';
                 } finally {
                     document.getElementById('skeleton-loader').style.display = 'none';
-                    document.getElementById('real-content').style.display = 'contents';
+                    document.getElementById('real-content').style.display = 'block';
+                    document.getElementById('hero-section').style.display = 'block';
+                    document.getElementById('content-body').style.display = 'grid';
                     const activeTab = document.querySelector('.nav-tab.active');
                     const slider = document.getElementById('pill-slider');
                     if(activeTab && slider) {
@@ -370,27 +379,39 @@
                 }
             };
 
-            const renderHero = (courseData, curriculum, progressData) => {
-                document.getElementById('hero-course-title').textContent = courseData.name;
-                
-                const allItems = curriculum.flatMap(c => c.items);
+            const renderHero = (courseData, progressData) => {
+                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
                 const totalItems = allItems.length;
                 const completedItems = allItems.filter(item => progressData[item.id]).length;
-                const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+                const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
                 
-                document.getElementById('hero-course-progress').style.width = `${percent}%`;
-                document.getElementById('hero-course-percent').textContent = `${percent}%`;
-                document.getElementById('hero-course-link').href = `course-view.html?id=${courseData.id}`;
+                document.getElementById('hero-title').textContent = courseData.name;
+                document.getElementById('hero-progress-bar').style.width = `${progressPercent}%`;
+                document.getElementById('progress-text-details').textContent = `${completedItems} / ${totalItems} Items Completed`;
+                document.getElementById('progress-text-percent').textContent = `${progressPercent}%`;
+                
+                const firstUncompleted = allItems.find(item => !progressData[item.id]);
+                const continueBtn = document.getElementById('hero-continue-btn');
+                
+                if (firstUncompleted) {
+                    continueBtn.href = `course-view.html?id=${courseId}`;
+                    document.getElementById('continue-btn-text').textContent = 'Continue Learning';
+                } else if (totalItems > 0) {
+                    continueBtn.href = `course-view.html?id=${courseId}`;
+                    document.getElementById('continue-btn-text').textContent = 'Review Course';
+                } else {
+                    continueBtn.style.display = 'none';
+                }
             };
-
+            
             const renderCurriculum = (courseData, progressData) => {
                 const container = document.getElementById('courseContent');
                 container.innerHTML = '';
-                const allItems = courseData.curriculum.flatMap(c => c.items);
+                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
                 const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
 
                 courseData.curriculum.forEach(chapter => {
-                    if (chapter.items.length === 0) return;
+                    if (!chapter.items || chapter.items.length === 0) return;
                     
                     const chapterGroup = document.createElement('div');
                     chapterGroup.className = 'chapter-group';
@@ -422,7 +443,8 @@
                             card.onclick = () => window.location.href = `course-view.html?id=${courseId}`;
                         }
                         
-                        card.innerHTML = `<div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
+                        card.innerHTML = `
+                            <div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
                             <div class="card-info"><p class="card-title">${item.title}</p></div>
                             ${statusIcon}${buttonHtml}`;
                         itemsContainer.appendChild(card);
