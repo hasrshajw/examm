@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam In Progress - ProProctor Portal</title>
+    <style>
+        :root {
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: 'Menlo', 'Consolas', 'Courier New', monospace;
+            --bg-dark: #0d1117;
+            --surface-dark-rgb: 22, 27, 34;
+            --surface-light-rgb: 33, 38, 45;
+            --border-color-rgb: 48, 54, 61;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-glow-rgb: 88, 80, 236;
+            --accent-start: #5850EC;
+            --accent-end: #8A2BE2;
+            --success-rgb: 35, 134, 54;
+            --danger-rgb: 218, 54, 51;
+            --warning-rgb: 227, 179, 65;
+            --border-radius: 8px;
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        body { font-family: var(--font-sans); background-color: var(--bg-dark); color: var(--text-primary); position: relative; }
+        .aurora-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+        .aurora-bg::before, .aurora-bg::after { content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(150px); opacity: 0.15; }
+        .aurora-bg::before { background: radial-gradient(circle, var(--accent-start), transparent 70%); top: -20%; left: -10%; animation: moveAurora1 20s infinite alternate; }
+        .aurora-bg::after { background: radial-gradient(circle, var(--accent-end), transparent 70%); bottom: -20%; right: -10%; animation: moveAurora2 25s infinite alternate; }
+        @keyframes moveAurora1 { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(100px, 50px) rotate(30deg); } }
+        @keyframes moveAurora2 { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-100px, -50px) rotate(-30deg); } }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+        svg { display: block; width: 100%; height: 100%; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-secondary); transition: opacity 0.3s; }
+        .loading-spinner { border: 4px solid rgba(var(--surface-light-rgb), 0.5); border-top: 4px solid var(--accent-start); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .exam-dashboard { display: flex; height: 100%; position: relative; }
+        .sidebar { width: 320px; background: rgba(var(--surface-dark-rgb), 0.7); backdrop-filter: blur(20px); border-right: 1px solid rgba(var(--border-color-rgb), 0.5); padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; transition: transform var(--transition-smooth), width var(--transition-smooth); }
+        .sidebar-header { margin-bottom: 24px; padding-left: 12px; }
+        .sidebar-header .test-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar nav { flex-grow: 1; overflow-y: auto; }
+        .question-nav { list-style: none; }
+        .question-item { position: relative; display: flex; align-items: center; padding: 12px; border-radius: var(--border-radius); margin-bottom: 8px; cursor: pointer; transition: all var(--transition-fast); border: 1px solid transparent; overflow: hidden; }
+        .question-item::before { content: ''; position: absolute; left: 0; top: 0; width: 3px; height: 100%; background: linear-gradient(var(--accent-start), var(--accent-end)); transform: translateX(-100%); transition: transform var(--transition-fast); }
+        .question-item:not(.active):hover { background-color: rgba(var(--surface-light-rgb), 0.5); }
+        .question-item.active { background-color: rgba(var(--surface-light-rgb), 0.7); }
+        .question-item.active::before { transform: translateX(0); }
+        .q-number { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; margin-right: 16px; font-size: 0.9rem; background-color: rgba(var(--surface-light-rgb), 1); transition: all var(--transition-fast); }
+        .active .q-number { background-image: linear-gradient(to right, var(--accent-start), var(--accent-end)); color: white; }
+        .q-title { font-size: 0.95rem; font-weight: 500; flex-grow: 1; }
+        .q-status-icon { width: 20px; height: 20px; margin-left: auto; opacity: 0; transform: scale(0.5); transition: all var(--transition-fast); }
+        .question-item.answered .q-status-icon, .question-item.attempted .q-status-icon { opacity: 1; transform: scale(1); }
+        .question-item.answered .q-status-icon { color: rgb(var(--success-rgb)); }
+        .question-item.attempted .q-status-icon { color: rgb(var(--danger-rgb)); }
+        .main-content { flex-grow: 1; padding: 24px 32px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-shrink: 0; background: rgba(var(--surface-dark-rgb), 0.7); backdrop-filter: blur(20px); padding: 12px 16px; border-radius: var(--border-radius); border: 1px solid rgba(var(--border-color-rgb), 0.5); }
+        .header-controls { display: flex; align-items: center; gap: 16px; }
+        .timer-container, .attempts-container { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 1rem; color: var(--text-secondary); background-color: rgba(var(--surface-light-rgb), 0.5); padding: 8px 12px; border-radius: 6px; }
+        .timer-container.warning { color: rgb(var(--warning-rgb)); } .timer-container.danger { color: rgb(var(--danger-rgb)); animation: pulse-danger 1.5s infinite; }
+        @keyframes pulse-danger { 0% { box-shadow: 0 0 0 0 rgba(var(--danger-rgb), 0.4); } 70% { box-shadow: 0 0 0 10px rgba(var(--danger-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--danger-rgb), 0); } }
+        .timer-container svg, .attempts-container svg { width: 18px; height: 18px; }
+        .attempts-container { color: rgb(var(--warning-rgb)); }
+        .btn { padding: 10px 24px; border-radius: var(--border-radius); font-weight: 600; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid rgba(var(--border-color-rgb), 0.7); }
+        .btn.submit-btn { background-image: linear-gradient(to right, var(--accent-start), var(--accent-end)); border: none; color: white; } .btn.submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 20px -5px rgba(var(--accent-glow-rgb), 0.5); }
+        #end-exam-btn { color: rgb(var(--danger-rgb)); border-color: rgb(var(--danger-rgb)); } #end-exam-btn:hover:not(:disabled) { background-color: rgba(var(--danger-rgb), 0.1); }
+        .btn:disabled { background-color: rgba(var(--surface-light-rgb), 0.5); color: var(--text-secondary); cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.5; }
+        .question-area { background: rgba(var(--surface-dark-rgb), 0.7); backdrop-filter: blur(20px); border-radius: var(--border-radius); border: 1px solid rgba(var(--border-color-rgb), 0.5); flex-grow: 1; padding: 32px 40px; display: flex; flex-direction: column; overflow-y: auto; }
+        .question-header { padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5); }
+        .question-title-text { font-size: 1.5rem; font-weight: 600; line-height: 1.4; color: var(--text-primary); }
+        .options-container { display: flex; flex-direction: column; gap: 1rem; }
+        .option { display: flex; align-items: center; padding: 1rem; border: 1px solid rgba(var(--border-color-rgb), 0.8); border-radius: var(--border-radius); cursor: pointer; transition: all 0.2s; }
+        .option:hover { background-color: rgba(var(--surface-light-rgb), 0.5); }
+        .option.selected { border-color: var(--accent-start); background-color: rgba(var(--accent-glow-rgb), 0.1); }
+        .option-letter { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(var(--border-color-rgb), 1); display: grid; place-items: center; flex-shrink: 0; margin-right: 1rem; font-weight: bold; transition: all 0.2s; }
+        .option-text { flex-grow: 1; line-height: 1.5; }
+        .selected .option-letter { border-color: var(--accent-start); background-color: var(--accent-start); color: white; }
+        .question-footer { margin-top: auto; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; }
+        .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.7); backdrop-filter: blur(10px); z-index: 9998; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--transition-fast); }
+        .custom-modal-overlay.show { display: flex; opacity: 1; }
+        .custom-modal-card { background-color: rgba(var(--surface-dark-rgb), 0.8); padding: 40px; border-radius: var(--border-radius); border: 1px solid rgba(var(--border-color-rgb), 0.5); width: 90%; max-width: 700px; text-align: center; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-modal-card h2 { font-size: 2rem; margin-bottom: 8px; } .custom-modal-card p { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.25rem; }
+        .custom-modal-actions { display: flex; gap: 16px; justify-content: center; }
+        .custom-modal-actions .btn { background-color: rgba(var(--surface-light-rgb), 0.8); }
+        .review-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 12px; margin: 24px 0; max-height: 40vh; overflow-y: auto; padding: 10px; }
+        .review-item-btn { width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 1rem; border: 2px solid rgba(var(--border-color-rgb), 0.8); transition: all var(--transition-fast); }
+        .review-item-btn:hover { border-color: var(--accent-start); }
+        .review-item-btn.answered { background-color: rgba(var(--success-rgb), 0.1); color: rgb(var(--success-rgb)); border-color: rgb(var(--success-rgb)); }
+        .review-item-btn.attempted { background-color: rgba(var(--danger-rgb), 0.1); color: rgb(var(--danger-rgb)); border-color: rgb(var(--danger-rgb)); }
+        #redirect-message { font-size: 1rem; margin-top: -16px; }
+        #alert-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+        .advanced-alert { display: flex; align-items: flex-start; width: 350px; max-width: 90vw; background-color: rgba(var(--surface-dark-rgb), 0.8); backdrop-filter: blur(10px); border-radius: var(--border-radius); padding: 16px; border-left: 4px solid; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; position: relative; overflow: hidden; }
+        @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .advanced-alert.fade-out { animation: slideOutRight 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both; }
+        @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+        .alert-icon { flex-shrink: 0; width: 24px; height: 24px; margin-right: 12px; } .alert-content { flex-grow: 1; } .alert-title { font-weight: 700; color: var(--text-primary); margin-bottom: 4px; } .alert-message { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; }
+        .alert-progress { position: absolute; bottom: 0; left: 0; height: 3px; width: 100%; background-color: rgba(255,255,255,0.2); }
+        .alert-progress::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 100%; background-color: currentColor; animation: progressShrink 5s linear forwards; }
+        @keyframes progressShrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+        .advanced-alert.alert-error { border-color: rgb(var(--danger-rgb)); color: rgb(var(--danger-rgb)); }
+        .advanced-alert.alert-info { border-color: var(--accent-start); color: var(--accent-start); }
+        .mobile-header { display: none; } .menu-toggle, .overlay, .close-menu-btn { display: none; }
+        @media (max-width: 900px) {
+            .main-content { padding: 0; }
+            .main-header { display: none; }
+            .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(var(--surface-dark-rgb), 0.7); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(var(--border-color-rgb), 0.5); flex-shrink: 0; }
+            .question-area { margin: 16px; padding: 24px; }
+            .question-title-text { font-size: 1.2rem; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; z-index: 1000; transform: translateX(-100%); box-shadow: 0 10px 30px rgba(0,0,0,0.2); } .sidebar.active { transform: translateX(0); }
+            .close-menu-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; background: rgba(var(--surface-light-rgb), 0.8); border-radius: 50%; color: white; cursor: pointer; z-index: 1001; } .close-menu-btn svg { width: 18px; height: 18px; }
+            .overlay { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; pointer-events: none; transition: opacity var(--transition-smooth); } .overlay.active { opacity: 1; pointer-events: auto; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid rgba(var(--border-color-rgb), 0.5); border-radius: 50%; color: var(--text-secondary); } .menu-toggle svg { width: 20px; height: 20px; }
+            .custom-modal-card { padding: 24px; } .custom-modal-card h2 { font-size: 1.5rem; } .custom-modal-card p { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="aurora-bg"></div>
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Initializing Exam Environment...</p>
+    </div>
+    <div id="alert-container"></div>
+    <div style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" id="icon-defs">
+            <symbol id="icon-check-circle" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-attempted-x" viewBox="0 0 24 24" fill="none"><path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle></symbol>
+            <symbol id="icon-close" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></symbol>
+            <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></symbol>
+            <symbol id="icon-timer" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 10.586V6z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-info-circle" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-warning-shield" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 1.954c2.828 0 5.378 1.05 7.424 2.783l.001.001c2.1 1.768 3.575 4.38 3.575 7.262 0 2.883-1.475 5.494-3.576 7.262-2.046 1.733-4.596 2.783-7.424 2.783s-5.378-1.05-7.424-2.783C2.475 17.494 1 14.883 1 12c0-2.882 1.475-5.494 3.576-7.262C6.622 2.994 9.172 1.954 12 1.954zM11 7a1 1 0 112 0v6a1 1 0 11-2 0V7zm0 9a1 1 0 112 0 1 1 0 01-2 0z" clip-rule="evenodd"></path></symbol>
+        </svg>
+    </div>
+    
+    <main class="exam-dashboard" style="display: none;">
+        <aside class="sidebar" id="sidebar">
+            <button class="close-menu-btn" id="close-menu-btn"><svg><use href="#icon-close"></use></svg></button>
+            <div class="sidebar-header"><h1 class="test-title" id="exam-title-sidebar"></h1></div>
+            <nav><ul class="question-nav" id="question-nav"></ul></nav>
+        </aside>
+
+        <div class="main-content">
+            <header class="main-header">
+                <button class="menu-toggle" id="menu-toggle"><svg><use href="#icon-menu"></use></svg></button>
+                <div class="header-controls">
+                    <div class="attempts-container" id="attempts-container"><svg><use href="#icon-warning-shield"></use></svg><span id="attempts-display"></span></div>
+                    <div class="timer-container" id="timer-container"><svg><use href="#icon-timer"></use></svg><span id="timer-display">00:00</span></div>
+                </div>
+                <button id="end-exam-btn" class="btn">End Exam</button>
+            </header>
+            <header class="mobile-header">
+                <button class="menu-toggle" id="mobile-menu-toggle"><svg><use href="#icon-menu"></use></svg></button>
+                <div class="header-controls">
+                    <div class="attempts-container" id="mobile-attempts-container"><svg><use href="#icon-warning-shield"></use></svg><span id="mobile-attempts-display"></span></div>
+                    <div class="timer-container" id="mobile-timer-container"><svg><use href="#icon-timer"></use></svg><span id="mobile-timer-display">00:00</span></div>
+                </div>
+                <button id="mobile-end-exam-btn" class="btn" style="padding: 8px 16px;">End</button>
+            </header>
+
+            <div class="question-area">
+                <div class="question-header"><h2 class="question-title-text" id="question-title"></h2></div>
+                <div class="options-container" id="options-container"></div>
+                <footer class="question-footer">
+                    <button id="prev-btn" class="btn"><svg style="width:18px; height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Previous</button>
+                    <button id="next-btn" class="btn submit-btn">Next <svg style="width:18px; height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+                </footer>
+            </div>
+        </div>
+        <div class="overlay" id="overlay"></div>
+    </main>
+    
+    <div id="fullscreen-overlay" class="custom-modal-overlay show">
+        <div class="custom-modal-card">
+             <h2>Exam Integrity Protocol</h2>
+            <p>For a fair and secure testing environment, this exam must be taken in fullscreen mode. Leaving fullscreen will pause the exam and count as a violation. You have 3 attempts before the exam is automatically submitted.</p>
+            <div class="custom-modal-actions">
+                <button id="start-exam-btn" class="btn submit-btn">I Understand, Start Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pause-overlay" class="custom-modal-overlay">
+        <div class="custom-modal-card">
+            <h2>Exam Paused</h2>
+            <p>You have left fullscreen mode. Please re-enter fullscreen to continue the exam. This action has been recorded.</p>
+            <div class="custom-modal-actions">
+                <button id="resume-exam-btn" class="btn submit-btn">Re-enter Fullscreen & Resume</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-overlay" class="custom-modal-overlay">
+        <div class="custom-modal-card">
+            <h2 id="results-title"></h2>
+            <p id="results-message"></p>
+            <div style="font-size: 4rem; font-weight: bold; margin: 2rem 0; background: linear-gradient(90deg, var(--accent-start), var(--accent-end)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="final-score-display"></div>
+            <p id="redirect-message"></p>
+        </div>
+    </div>
+
+    <div id="review-overlay" class="custom-modal-overlay">
+        <div class="custom-modal-card">
+            <h2>Review Your Answers</h2>
+            <p>You can jump back to any question by clicking its number. When you are finished, confirm your submission.</p>
+            <div class="review-grid" id="review-grid"></div>
+            <div class="custom-modal-actions">
+                <button id="review-cancel-btn" class="btn">Return to Exam</button>
+                <button id="review-confirm-btn" class="btn submit-btn">Confirm & Submit Test</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+            authDomain: "exam-2e799.firebaseapp.com",
+            projectId: "exam-2e799",
+            storageBucket: "exam-2e799.firebasestorage.app",
+            messagingSenderId: "472506328501",
+            appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+            measurementId: "G-NX21HT3JKT"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const DOMElements = {
+            loadingOverlay: document.getElementById('loading-overlay'),
+            examDashboard: document.querySelector('.exam-dashboard'),
+            examTitleSidebar: document.getElementById('exam-title-sidebar'),
+            questionNav: document.getElementById('question-nav'),
+            timerContainer: document.getElementById('timer-container'),
+            mobileTimerContainer: document.getElementById('mobile-timer-container'),
+            timerDisplay: document.getElementById('timer-display'),
+            mobileTimerDisplay: document.getElementById('mobile-timer-display'),
+            attemptsDisplay: document.getElementById('attempts-display'),
+            mobileAttemptsDisplay: document.getElementById('mobile-attempts-display'),
+            endExamBtn: document.getElementById('end-exam-btn'),
+            mobileEndExamBtn: document.getElementById('mobile-end-exam-btn'),
+            questionTitle: document.getElementById('question-title'),
+            optionsContainer: document.getElementById('options-container'),
+            prevBtn: document.getElementById('prev-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            menuToggle: document.getElementById('menu-toggle'),
+            mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
+            closeMenuBtn: document.getElementById('close-menu-btn'),
+            sidebar: document.getElementById('sidebar'),
+            overlay: document.getElementById('overlay'),
+            alertContainer: document.getElementById('alert-container'),
+            fullscreenOverlay: document.getElementById('fullscreen-overlay'),
+            startExamBtn: document.getElementById('start-exam-btn'),
+            pauseOverlay: document.getElementById('pause-overlay'),
+            resumeExamBtn: document.getElementById('resume-exam-btn'),
+            resultsOverlay: document.getElementById('results-overlay'),
+            resultsTitle: document.getElementById('results-title'),
+            resultsMessage: document.getElementById('results-message'),
+            finalScoreDisplay: document.getElementById('final-score-display'),
+            reviewOverlay: document.getElementById('review-overlay'),
+            reviewGrid: document.getElementById('review-grid'),
+            reviewCancelBtn: document.getElementById('review-cancel-btn'),
+            reviewConfirmBtn: document.getElementById('review-confirm-btn')
+        };
+
+        let currentUser, examId, examData, questions = [], userAnswers = {}, visitedQuestions = new Set(), currentQuestionIndex = 0, timerInterval, isExamEnded = false, pauseStartTime = null;
+        let leaveAttempts = 0;
+        const MAX_LEAVE_ATTEMPTS = 3;
+
+        async function main() {
+            const urlParams = new URLSearchParams(window.location.search);
+            examId = urlParams.get('id');
+            if (!examId) { DOMElements.loadingOverlay.innerHTML = '<p>Exam ID not found.</p>'; return; }
+
+            auth.onAuthStateChanged(async user => {
+                if (user) {
+                    currentUser = user;
+                    const completedScoreData = await checkIfExamCompleted();
+                    if (completedScoreData) {
+                        showFinalResultsPage(completedScoreData, true);
+                    } else {
+                        await fetchData();
+                        DOMElements.startExamBtn.addEventListener('click', startExam);
+                    }
+                } else { window.location.href = 'index.html'; }
+            });
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; }
+            return array;
+        }
+
+        async function fetchData() {
+            const examDoc = await db.collection('exams').doc(examId).get();
+            if (!examDoc.exists) { DOMElements.loadingOverlay.innerHTML = '<p>Exam not found.</p>'; throw new Error("Exam not found"); }
+            examData = { id: examDoc.id, ...examDoc.data() };
+            questions = shuffleArray(examData.questions);
+            questions.forEach((q, index) => { userAnswers[index] = null; });
+            DOMElements.loadingOverlay.style.display = 'none';
+        }
+
+        async function checkIfExamCompleted() {
+            const scoreQuery = await db.collection('scores').where('userId', '==', currentUser.uid).where('examId', '==', examId).limit(1).get();
+            return scoreQuery.empty ? false : scoreQuery.docs[0].data();
+        }
+
+        function enterFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen(); } else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
+        }
+
+        function startExam() {
+            enterFullScreen();
+            DOMElements.fullscreenOverlay.classList.remove('show');
+            init();
+        }
+        
+        function init() {
+            DOMElements.examTitleSidebar.textContent = examData.name;
+            updateAttemptsDisplay();
+            renderQuestionNav();
+            loadQuestion(currentQuestionIndex);
+            initEventListeners();
+            startTimer();
+            DOMElements.examDashboard.style.display = 'flex';
+        }
+
+        function initEventListeners() {
+            [DOMElements.endExamBtn, DOMElements.mobileEndExamBtn].forEach(btn => btn.addEventListener('click', showReviewOverlay));
+            DOMElements.prevBtn.addEventListener('click', () => navigateToQuestion(currentQuestionIndex - 1));
+            DOMElements.nextBtn.addEventListener('click', () => {
+                const isLastQuestion = currentQuestionIndex === questions.length - 1;
+                isLastQuestion ? showReviewOverlay() : navigateToQuestion(currentQuestionIndex + 1);
+            });
+            DOMElements.questionNav.addEventListener('click', handleQuestionSelect);
+            [DOMElements.menuToggle, DOMElements.mobileMenuToggle].forEach(btn => btn.addEventListener('click', () => { DOMElements.sidebar.classList.add('active'); DOMElements.overlay.classList.add('active'); }));
+            const closeMobileMenu = () => { DOMElements.sidebar.classList.remove('active'); DOMElements.overlay.classList.remove('active'); };
+            DOMElements.closeMenuBtn.addEventListener('click', closeMobileMenu);
+            DOMElements.overlay.addEventListener('click', closeMobileMenu);
+            DOMElements.reviewCancelBtn.addEventListener('click', () => DOMElements.reviewOverlay.classList.remove('show'));
+            DOMElements.reviewConfirmBtn.addEventListener('click', () => endExam("Test Finished", false, "User Submitted"));
+            DOMElements.resumeExamBtn.addEventListener('click', resumeExam);
+            
+            document.addEventListener('visibilitychange', handleLeaveAttempt);
+            document.addEventListener('fullscreenchange', handleLeaveAttempt);
+            document.addEventListener('contextmenu', e => { e.preventDefault(); showAdvancedAlert('error', 'Action Blocked', 'Right-clicking is disabled during the exam.'); });
+            document.addEventListener('copy', e => { e.preventDefault(); showAdvancedAlert('error', 'Action Blocked', 'Copying is disabled during the exam.'); });
+            document.addEventListener('paste', e => { e.preventDefault(); showAdvancedAlert('error', 'Action Blocked', 'Pasting is disabled during the exam.'); });
+        }
+
+        function handleLeaveAttempt() {
+            if (isExamEnded || DOMElements.pauseOverlay.classList.contains('show')) return;
+            if (!document.fullscreenElement) {
+                leaveAttempts++;
+                updateAttemptsDisplay();
+                const attemptsRemaining = MAX_LEAVE_ATTEMPTS - leaveAttempts;
+                if (attemptsRemaining >= 0) {
+                    clearInterval(timerInterval);
+                    pauseStartTime = Date.now();
+                    DOMElements.pauseOverlay.classList.add('show');
+                } 
+                if (attemptsRemaining < 0) {
+                    endExam("Exam Terminated", true, "Exceeded leave attempts");
+                }
+            }
+        }
+
+        function resumeExam() {
+            enterFullScreen();
+            DOMElements.pauseOverlay.classList.remove('show');
+            const pauseDuration = Date.now() - pauseStartTime;
+            const storageKey = `examEndTime_${currentUser.uid}_${examId}`;
+            const currentEndTime = parseInt(localStorage.getItem(storageKey));
+            const newEndTime = currentEndTime + pauseDuration;
+            localStorage.setItem(storageKey, newEndTime);
+            startTimer();
+        }
+
+        function updateAttemptsDisplay() {
+            const attemptsRemaining = Math.max(0, MAX_LEAVE_ATTEMPTS - leaveAttempts);
+            const text = `${attemptsRemaining}/${MAX_LEAVE_ATTEMPTS}`;
+            DOMElements.attemptsDisplay.textContent = text;
+            DOMElements.mobileAttemptsDisplay.textContent = text;
+        }
+        
+        function renderQuestionNav() {
+            DOMElements.questionNav.innerHTML = questions.map((q, index) => {
+                let statusClass = '';
+                let iconHref = '';
+                if (userAnswers[index] !== null) {
+                    statusClass = 'answered';
+                    iconHref = '#icon-check-circle';
+                } else if (visitedQuestions.has(index)) {
+                    statusClass = 'attempted';
+                    iconHref = '#icon-attempted-x';
+                }
+                return `
+                <li class="question-item ${statusClass} ${index === currentQuestionIndex ? 'active' : ''}" data-index="${index}">
+                    <div class="q-number">${index + 1}</div><div class="q-title">Question ${index + 1}</div>
+                    ${iconHref ? `<div class="q-status-icon"><svg><use href="${iconHref}"></use></svg></div>` : ''}
+                </li>`;
+            }).join('');
+        }
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            visitedQuestions.add(index);
+            const question = questions[index];
+            if (!question) return;
+
+            DOMElements.questionTitle.textContent = `${index + 1}. ${question.title}`;
+            DOMElements.optionsContainer.innerHTML = question.options.map((opt, optIndex) => `
+                <div class="option ${userAnswers[index] === optIndex ? 'selected' : ''}" data-opt-index="${optIndex}">
+                    <span class="option-letter">${String.fromCharCode(65 + optIndex)}</span><span class="option-text">${opt}</span>
+                </div>`).join('');
+
+            DOMElements.optionsContainer.querySelectorAll('.option').forEach(opt => {
+                opt.addEventListener('click', () => selectOption(parseInt(opt.dataset.optIndex)));
+            });
+
+            updateNavButtons();
+            renderQuestionNav();
+        }
+
+        function selectOption(optIndex) {
+            userAnswers[currentQuestionIndex] = optIndex;
+            loadQuestion(currentQuestionIndex);
+        }
+        
+        function handleQuestionSelect(e) { 
+            const target = e.target.closest('.question-item');
+            if (target && target.dataset.index) { 
+                navigateToQuestion(parseInt(target.dataset.index));
+                if(window.innerWidth <= 900) { DOMElements.sidebar.classList.remove('active'); DOMElements.overlay.classList.remove('active'); }
+            }
+        }
+        
+        function navigateToQuestion(index) { if (index >= 0 && index < questions.length) { loadQuestion(index); } }
+
+        function updateNavButtons() {
+            DOMElements.prevBtn.disabled = currentQuestionIndex === 0;
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+            DOMElements.nextBtn.innerHTML = isLastQuestion ? `Review & Submit <svg style="width:18px; height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>` : `Next <svg style="width:18px; height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>`;
+        }
+
+        function startTimer() {
+            const storageKey = `examEndTime_${currentUser.uid}_${examId}`;
+            let endTime = localStorage.getItem(storageKey);
+            if (!endTime) { endTime = Date.now() + examData.duration * 1000; localStorage.setItem(storageKey, endTime); }
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const remaining = endTime - Date.now();
+                if (remaining <= 0) { endExam("Time's up!", true, "Time Expired"); return; }
+                updateTimerDisplay(remaining);
+            }, 1000);
+        }
+
+        function updateTimerDisplay(remainingMs) {
+            const totalSeconds = Math.floor(remainingMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            const timeString = `${minutes}:${seconds}`;
+            DOMElements.timerDisplay.textContent = timeString;
+            DOMElements.mobileTimerDisplay.textContent = timeString;
+            const containers = [DOMElements.timerContainer, DOMElements.mobileTimerContainer];
+            containers.forEach(c => {
+                c.classList.toggle('warning', totalSeconds <= 300 && totalSeconds > 60);
+                c.classList.toggle('danger', totalSeconds <= 60);
+            });
+        }
+
+        function showReviewOverlay() {
+            DOMElements.reviewGrid.innerHTML = questions.map((q, index) => {
+                let statusClass = '';
+                 if (userAnswers[index] !== null) { statusClass = 'answered'; } 
+                 else if (visitedQuestions.has(index)) { statusClass = 'attempted'; }
+                return `<button class="review-item-btn ${statusClass}" data-index="${index}">${index + 1}</button>`;
+            }).join('');
+            
+            DOMElements.reviewGrid.querySelectorAll('.review-item-btn').forEach(btn => {
+                btn.addEventListener('click', () => { navigateToQuestion(parseInt(btn.dataset.index)); DOMElements.reviewOverlay.classList.remove('show'); });
+            });
+
+            DOMElements.reviewOverlay.classList.add('show');
+        }
+
+        async function endExam(title, isAutoSubmit, reason) {
+            if (isExamEnded) return;
+            isExamEnded = true;
+            clearInterval(timerInterval);
+
+            DOMElements.loadingOverlay.querySelector('p').textContent = 'Submitting & Calculating Score...';
+            DOMElements.loadingOverlay.style.display = 'flex';
+            DOMElements.examDashboard.style.display = 'none';
+
+            let pointsReceived = 0;
+            const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
+            questions.forEach((q, index) => { if (q.type === 'Mcq' && userAnswers[index] === q.correctAnswer) { pointsReceived += q.points; } });
+
+            const scoreData = {
+                userId: currentUser.uid, examId, examName: examData.name, subjectId: examData.subjectId, 
+                pointsReceived, totalPoints, reason, leaveAttempts, submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await db.collection('scores').add(scoreData);
+            localStorage.removeItem(`examEndTime_${currentUser.uid}_${examId}`);
+            showFinalResultsPage(scoreData, false, title);
+        }
+
+        function showFinalResultsPage(scoreData, isAlreadyCompleted, title = "Test Finished!") {
+            DOMElements.loadingOverlay.style.display = 'none';
+            DOMElements.examDashboard.style.display = 'none';
+            DOMElements.reviewOverlay.classList.remove('show');
+            
+            const percentage = scoreData.totalPoints > 0 ? Math.round((scoreData.pointsReceived / scoreData.totalPoints) * 100) : 0;
+            DOMElements.resultsTitle.textContent = isAlreadyCompleted ? "Exam Already Completed" : title;
+            DOMElements.resultsMessage.textContent = `Here is your final score for ${scoreData.examName}.`;
+            DOMElements.finalScoreDisplay.innerHTML = `${percentage}% <br><span style="font-size: 1.5rem; color: var(--text-secondary);">${scoreData.pointsReceived} / ${scoreData.totalPoints} Points</span>`;
+            DOMElements.resultsOverlay.classList.add('show');
+
+            let countdown = 10;
+            const redirectMessageEl = document.getElementById('redirect-message');
+            const countdownInterval = setInterval(() => {
+                redirectMessageEl.textContent = `Redirecting to dashboard in ${countdown} seconds...`;
+                countdown--;
+                if (countdown < 0) { clearInterval(countdownInterval); window.location.href = 'dashboard.html'; }
+            }, 1000);
+        }
+
+        function showAdvancedAlert(type, title, message) {
+            const alertId = `alert-${Date.now()}`;
+            const alertEl = document.createElement('div');
+            alertEl.id = alertId;
+            alertEl.className = `advanced-alert alert-${type}`;
+            const iconId = '#icon-info-circle';
+            alertEl.innerHTML = `<div class="alert-icon"><svg><use href="${iconId}"></use></svg></div><div class="alert-content"><div class="alert-title">${title}</div><div class="alert-message">${message}</div></div><div class="alert-progress"></div>`;
+            DOMElements.alertContainer.appendChild(alertEl);
+            setTimeout(() => {
+                const el = document.getElementById(alertId);
+                if (el) { el.classList.add('fade-out'); el.addEventListener('animationend', () => el.remove()); }
+            }, 5000);
+        }
+        
+        main();
+    </script>
+</body>
+</html>
