@@ -88,6 +88,17 @@
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .stat-item { text-align: center; } .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
         .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 1999; display: grid; place-items: center; padding: 1rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out; backdrop-filter: blur(4px); }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--widget-bg); border-radius: 1rem; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s ease-in-out; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { font-size: 1.25rem; font-weight: 700; }
+        .close-btn { background: none; border: none; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s ease; font-size: 1.75rem; color: var(--text-secondary); }
+        .close-btn:hover { background-color: var(--hover-bg); }
+        .modal-body { padding: 1.5rem 2rem; text-align: center; }
+        .modal-body p { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .modal-body h2 { font-size: 3rem; font-weight: 700; color: var(--brand-green); margin-bottom: 1rem; }
         .menu-toggle { display: none; } .sidebar-close-btn { display: none; }
         .enrollment-container { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 2.5rem; box-shadow: var(--shadow-lg); text-align: center; max-width: 450px; width: 100%; margin: 4rem auto; }
         .enrollment-container h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
@@ -259,7 +270,7 @@
                 const profileSection = document.getElementById('profile-section');
                 const profilePopup = document.getElementById('profile-popup');
                 profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
-                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
                 const sidebar = document.getElementById('sidebar');
                 const menuToggle = document.getElementById('menu-toggle');
                 const closeBtn = document.getElementById('sidebar-close-btn');
@@ -334,9 +345,13 @@
 
             const loadAndRenderContent = async (userId, courseId) => {
                 try {
-                    const [courseDoc, progressDoc] = await Promise.all([
+                    const [courseDoc, progressDoc, examsSnap, codeAssignmentsSnap, userScoresSnap, userCodeScoresSnap] = await Promise.all([
                         db.collection('courses').doc(courseId).get(),
-                        db.collection('users').doc(userId).collection('progressSummary').doc(courseId).get()
+                        db.collection('users').doc(userId).collection('progressSummary').doc(courseId).get(),
+                        db.collection('exams').where('courseId', '==', courseId).get(),
+                        db.collection('codeAssignments').where('courseId', '==', courseId).get(),
+                        db.collection('scores').where('userId', '==', userId).get(),
+                        db.collection('codeAssignmentScores').where('userId', '==', userId).get()
                     ]);
 
                     if (!courseDoc.exists) {
@@ -347,10 +362,15 @@
                     const courseData = courseDoc.data();
                     const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     const curriculum = courseData.curriculum || [];
-
+                    
                     document.getElementById('header-title').textContent = courseData.name;
                     
-                    if (curriculum.length === 0) {
+                    const allExams = examsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const allCodeAssignments = codeAssignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const userScores = new Map(userScoresSnap.docs.map(doc => [doc.data().examId, doc.data()]));
+                    const userCodeAssignmentScores = new Map(userCodeScoresSnap.docs.map(doc => [doc.data().assignmentId, doc.data()]));
+
+                    if (curriculum.length === 0 && allExams.length === 0 && allCodeAssignments.length === 0) {
                         document.getElementById('hero-title').textContent = courseData.name;
                         document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
                         document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
@@ -358,6 +378,7 @@
                     } else {
                         renderHero(courseData, progressData);
                         renderCurriculum(courseData, progressData);
+                        renderAssessments(allExams, allCodeAssignments, userScores, userCodeAssignmentScores);
                     }
                     renderSidebarStats(curriculum, progressData);
 
@@ -450,6 +471,104 @@
                     });
                     container.appendChild(chapterGroup);
                 });
+            };
+
+            const renderAssessments = (exams, codeAssignments, userScores, userCodeAssignmentScores) => {
+                const container = document.getElementById('assessmentsContent');
+                container.innerHTML = '';
+                
+                const allAssessments = [
+                    ...exams.map(e => ({ ...e, type: 'exam' })),
+                    ...codeAssignments.map(a => ({ ...a, type: 'code' }))
+                ];
+
+                if (allAssessments.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No standalone assessments available for this course yet.</p>';
+                    return;
+                }
+
+                const assessmentGroup = document.createElement('div');
+                assessmentGroup.className = 'chapter-group';
+                assessmentGroup.innerHTML = `<h3 class="chapter-title">Standalone Assessments</h3><div class="content-list"></div>`;
+                const listContainer = assessmentGroup.querySelector('.content-list');
+
+                allAssessments.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    let buttonText = '', isCompleted = false, isLocked = false, metaText = '';
+                    let scoreData = null;
+
+                    if (item.type === 'exam') {
+                        scoreData = userScores.get(item.id);
+                        isLocked = item.isLocked;
+                        metaText = `${item.questions.length} Questions • ${item.duration / 60} min`;
+                        if (scoreData) {
+                            isCompleted = true;
+                            buttonText = 'View Results';
+                            card.onclick = () => showResultsModal(scoreData, false);
+                        } else {
+                            buttonText = isLocked ? 'Locked' : 'Start Exam';
+                            if (!isLocked) card.onclick = () => window.location.href = `exam.html?id=${item.id}`;
+                        }
+                    } else { // type === 'code'
+                        scoreData = userCodeAssignmentScores.get(item.id);
+                        isLocked = item.isLocked;
+                        metaText = `Coding Challenge • ${item.duration / 60} min`;
+                         if (scoreData) {
+                            isCompleted = true;
+                            buttonText = 'View Results';
+                            card.onclick = () => showResultsModal(scoreData, true);
+                        } else {
+                            buttonText = isLocked ? 'Locked' : 'Start Code';
+                            if (!isLocked) card.onclick = () => window.location.href = `code.html?id=${item.id}`;
+                        }
+                    }
+
+                    const iconClass = item.type === 'exam' ? 'bxs-graduation' : 'bxs-terminal';
+                    card.dataset.status = isLocked && !isCompleted ? 'locked' : (isCompleted ? 'completed' : 'next');
+                    const prefixClass = isLocked && !isCompleted ? 'card-prefix--locked' : (isCompleted ? 'card-prefix--completed' : 'card-prefix--default');
+                    const statusIcon = isCompleted ? `<div class="card-status-icon"><i class="bx bxs-check-circle"></i></div>` : '';
+                    const buttonClass = isLocked && !isCompleted ? 'card-button--locked' : '';
+
+                    card.innerHTML = `
+                        <div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
+                        <div class="card-info">
+                            <p class="card-title">${item.name}</p>
+                            <p class="card-meta">${metaText}</p>
+                        </div>
+                        ${statusIcon}
+                        <button class="card-button ${buttonClass}">${buttonText}</button>`;
+                    
+                    listContainer.appendChild(card);
+                });
+                container.appendChild(assessmentGroup);
+            };
+
+            const showResultsModal = (score, isCode) => {
+                let modal = document.getElementById('results-modal');
+                if (modal) modal.remove();
+                
+                modal = document.createElement('div');
+                modal.id = 'results-modal';
+                modal.className = 'modal-overlay show';
+                const title = isCode ? score.assignmentName : score.examName;
+                const points = isCode ? score.totalScoreObtained : score.pointsReceived;
+                const total = isCode ? score.totalScorePossible : score.totalPoints;
+                const percentage = total > 0 ? Math.round((points / total) * 100) : 0;
+                
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header"><h3 id="results-modal-title">${title}</h3><button class="close-btn">&times;</button></div>
+                        <div class="modal-body">
+                            <p>Your Score</p>
+                            <h2 id="results-modal-score">${percentage}%</h2>
+                            <p id="results-modal-details">${points} / ${total} Points</p>
+                        </div>
+                    </div>`;
+                
+                document.body.appendChild(modal);
+                modal.querySelector('.close-btn').onclick = () => modal.remove();
+                modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
             };
 
             const renderSidebarStats = (curriculum, progressData) => {
