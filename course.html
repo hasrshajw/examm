@@ -180,10 +180,7 @@
                 <div class="content-body">
                     <div class="main-content">
                         <div class="pill-nav-container">
-                            <div class="skeleton-pill-nav">
-                                <div class="skeleton-pill"></div>
-                                <div class="skeleton-pill"></div>
-                            </div>
+                            <div class="skeleton" style="width: 240px; height: 42px; border-radius: 99px;"></div>
                         </div>
                     </div>
                 </div>
@@ -320,7 +317,7 @@
                         if (!enrollmentsQuery.empty) {
                             const latestEnrollment = enrollmentsQuery.docs[0].data();
                             courseId = latestEnrollment.courseId;
-                            window.history.replaceState({}, '', `?id=${courseId}`);
+                            window.history.replaceState({}, '', `course.html?id=${courseId}`);
                         } else {
                             document.getElementById('skeleton-loader').style.display = 'none';
                             document.getElementById('real-content').style.display = 'block';
@@ -354,8 +351,10 @@
                     document.getElementById('header-title').textContent = courseData.name;
                     
                     if (curriculum.length === 0) {
+                        document.getElementById('hero-title').textContent = courseData.name;
                         document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
                         document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
+                        document.getElementById('hero-continue-btn').style.display = 'none';
                     } else {
                         renderHero(courseData, progressData);
                         renderCurriculum(courseData, progressData);
@@ -394,10 +393,10 @@
                 const continueBtn = document.getElementById('hero-continue-btn');
                 
                 if (firstUncompleted) {
-                    continueBtn.href = `course-view.html?id=${courseId}`;
+                    continueBtn.href = `course-view.html?courseId=${courseId}&itemId=${firstUncompleted.id}`;
                     document.getElementById('continue-btn-text').textContent = 'Continue Learning';
                 } else if (totalItems > 0) {
-                    continueBtn.href = `course-view.html?id=${courseId}`;
+                    continueBtn.href = `course-view.html?courseId=${courseId}&itemId=${allItems[0].id}`;
                     document.getElementById('continue-btn-text').textContent = 'Review Course';
                 } else {
                     continueBtn.style.display = 'none';
@@ -440,7 +439,7 @@
                         
                         card.dataset.status = status;
                         if(status !== 'locked') {
-                            card.onclick = () => window.location.href = `course-view.html?id=${courseId}`;
+                            card.onclick = () => window.location.href = `course-view.html?courseId=${courseId}&itemId=${item.id}`;
                         }
                         
                         card.innerHTML = `
