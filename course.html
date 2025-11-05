@@ -270,7 +270,7 @@
                 const profileSection = document.getElementById('profile-section');
                 const profilePopup = document.getElementById('profile-popup');
                 profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
-                document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
                 const sidebar = document.getElementById('sidebar');
                 const menuToggle = document.getElementById('menu-toggle');
                 const closeBtn = document.getElementById('sidebar-close-btn');
@@ -362,24 +362,24 @@
                     const courseData = courseDoc.data();
                     const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     const curriculum = courseData.curriculum || [];
-                    
+
                     document.getElementById('header-title').textContent = courseData.name;
+                    
+                    if (curriculum.length === 0) {
+                        document.getElementById('hero-title').textContent = courseData.name;
+                        document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
+                        document.getElementById('hero-continue-btn').style.display = 'none';
+                    } else {
+                        renderHero(courseData, progressData);
+                        renderCurriculum(courseData, progressData);
+                    }
                     
                     const allExams = examsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     const allCodeAssignments = codeAssignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     const userScores = new Map(userScoresSnap.docs.map(doc => [doc.data().examId, doc.data()]));
                     const userCodeAssignmentScores = new Map(userCodeScoresSnap.docs.map(doc => [doc.data().assignmentId, doc.data()]));
+                    renderAssessments(allExams, allCodeAssignments, userScores, userCodeAssignmentScores);
 
-                    if (curriculum.length === 0 && allExams.length === 0 && allCodeAssignments.length === 0) {
-                        document.getElementById('hero-title').textContent = courseData.name;
-                        document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
-                        document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
-                        document.getElementById('hero-continue-btn').style.display = 'none';
-                    } else {
-                        renderHero(courseData, progressData);
-                        renderCurriculum(courseData, progressData);
-                        renderAssessments(allExams, allCodeAssignments, userScores, userCodeAssignmentScores);
-                    }
                     renderSidebarStats(curriculum, progressData);
 
                 } catch(error) {
@@ -402,8 +402,12 @@
             const renderHero = (courseData, progressData) => {
                 const allItems = (courseData.curriculum || []).flatMap(c => c.items);
                 const totalItems = allItems.length;
+                if (totalItems === 0) {
+                    document.getElementById('hero-continue-btn').style.display = 'none';
+                    return;
+                }
                 const completedItems = allItems.filter(item => progressData[item.id]).length;
-                const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+                const progressPercent = Math.round((completedItems / totalItems) * 100);
                 
                 document.getElementById('hero-title').textContent = courseData.name;
                 document.getElementById('hero-progress-bar').style.width = `${progressPercent}%`;
@@ -416,11 +420,9 @@
                 if (firstUncompleted) {
                     continueBtn.href = `course-view.html?courseId=${courseId}&itemId=${firstUncompleted.id}`;
                     document.getElementById('continue-btn-text').textContent = 'Continue Learning';
-                } else if (totalItems > 0) {
+                } else {
                     continueBtn.href = `course-view.html?courseId=${courseId}&itemId=${allItems[0].id}`;
                     document.getElementById('continue-btn-text').textContent = 'Review Course';
-                } else {
-                    continueBtn.style.display = 'none';
                 }
             };
             
@@ -510,7 +512,7 @@
                             buttonText = isLocked ? 'Locked' : 'Start Exam';
                             if (!isLocked) card.onclick = () => window.location.href = `exam.html?id=${item.id}`;
                         }
-                    } else { // type === 'code'
+                    } else { 
                         scoreData = userCodeAssignmentScores.get(item.id);
                         isLocked = item.isLocked;
                         metaText = `Coding Challenge • ${item.duration / 60} min`;
@@ -545,13 +547,13 @@
             };
 
             const showResultsModal = (score, isCode) => {
-                let modal = document.getElementById('results-modal');
-                if (modal) modal.remove();
-                
-                modal = document.createElement('div');
+                const existingModal = document.getElementById('results-modal');
+                if (existingModal) existingModal.remove();
+
+                const modal = document.createElement('div');
                 modal.id = 'results-modal';
                 modal.className = 'modal-overlay show';
-                const title = isCode ? score.assignmentName : score.examName;
+                const title = isCode ? (score.assignmentName || 'Code Assignment') : (score.examName || 'Exam');
                 const points = isCode ? score.totalScoreObtained : score.pointsReceived;
                 const total = isCode ? score.totalScorePossible : score.totalPoints;
                 const percentage = total > 0 ? Math.round((points / total) * 100) : 0;
