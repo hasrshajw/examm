@@ -406,7 +406,7 @@
                 modal.classList.add('show');
             };
 
-            const openQuizModal = (quiz = null, chapterIndex) => {
+            const openQuizModal = async (quiz = null, chapterIndex) => {
                 const modal = document.getElementById('quiz-modal');
                 modal.querySelector('#quiz-modal-title').textContent = quiz ? 'Edit Quiz' : 'Create New Quiz';
                 modal.dataset.chapterIndex = quiz ? quiz.chapterIndex : chapterIndex;
@@ -415,7 +415,17 @@
                 modal.querySelector('#quiz-title').value = quiz ? quiz.title : '';
                 const questionsContainer = modal.querySelector('#questions-container');
                 questionsContainer.innerHTML = '';
-                if (quiz) quiz.questions.forEach(addQuestionToForm);
+
+                if (quiz) {
+                    const solutionDoc = await db.collection('quizSolutions').doc(quiz.id).get();
+                    if (solutionDoc.exists) {
+                        const solutions = JSON.parse(atob(solutionDoc.data().payload));
+                        quiz.questions.forEach((q, i) => {
+                            q.correctAnswer = solutions[i].correctAnswer;
+                            addQuestionToForm(q);
+                        });
+                    }
+                }
                 modal.classList.add('show');
             };
 
@@ -445,9 +455,9 @@
             
             const openEditChapterModal = (index, currentName) => {
                 const modal = document.getElementById('edit-chapter-modal');
-                modal.querySelector('#edit-chapter-modal-title').textContent = currentName ? `Rename Chapter ${index + 1}` : 'Add New Chapter';
+                modal.querySelector('#edit-chapter-modal-title').textContent = currentName !== null ? `Rename Chapter ${index + 1}` : 'Add New Chapter';
                 modal.dataset.chapterIndex = index;
-                modal.querySelector('#new-chapter-name').value = currentName;
+                modal.querySelector('#new-chapter-name').value = currentName || '';
                 modal.classList.add('show');
             };
 
@@ -462,7 +472,7 @@
 
             const closeModal = (modalId) => document.getElementById(modalId).classList.remove('show');
 
-            document.getElementById('add-chapter-btn').addEventListener('click', () => openEditChapterModal(null, ''));
+            document.getElementById('add-chapter-btn').addEventListener('click', () => openEditChapterModal(null, null));
 
             document.getElementById('lesson-editor-container').addEventListener('click', async e => {
                 const target = e.target.closest('button');
@@ -483,13 +493,16 @@
                         await db.runTransaction(async (transaction) => {
                             const courseDoc = await transaction.get(courseRef);
                             const curriculum = courseDoc.data().curriculum || [];
-                            const updatedCurriculum = curriculum.map(chapter => {
-                                chapter.items = chapter.items.filter(item => item.id !== lessonId);
-                                return chapter;
-                            });
+                            const updatedCurriculum = curriculum.map(chapter => ({
+                                ...chapter,
+                                items: chapter.items.filter(item => item.id !== lessonId)
+                            }));
                             transaction.update(courseRef, { curriculum: updatedCurriculum });
                         });
                         await db.collection('lessons').doc(lessonId).delete();
+                        if (target.dataset.type === 'quiz') {
+                            await db.collection('quizSolutions').doc(lessonId).delete().catch(() => {});
+                        }
                     });
                 }
                 else if (target.matches('.edit-chapter-btn')) {
@@ -558,7 +571,7 @@
                 const updatedChapters = [...currentCourse.chapters];
                 const updatedCurriculum = [...(currentCourse.curriculum || [])];
                 
-                if (index !== null && index !== 'null') {
+                if (index !== null && index !== 'null' && index !== '') {
                     const oldName = updatedChapters[parseInt(index, 10)];
                     updatedChapters[parseInt(index, 10)] = newName;
                     const curriculumChapter = updatedCurriculum.find(c => c.chapterTitle === oldName);
@@ -625,7 +638,7 @@
                 closeModal('lesson-modal');
             });
 
-             document.getElementById('save-quiz-btn').addEventListener('click', async () => {
+            document.getElementById('save-quiz-btn').addEventListener('click', async () => {
                 const modal = document.getElementById('quiz-modal');
                 const form = document.getElementById('quiz-form');
                 if (!form.checkValidity()) { form.reportValidity(); return; }
@@ -633,12 +646,16 @@
                 const id = document.getElementById('quiz-id').value;
                 const chapterIndex = parseInt(modal.dataset.chapterIndex, 10);
                 const questions = [];
+                const solutions = [];
                 document.querySelectorAll('#questions-container .question-card').forEach(card => {
-                    questions.push({
+                    const questionData = {
                         title: card.querySelector('.question-title').value.trim(), 
                         options: [...card.querySelectorAll('.question-option')].map(opt => opt.value.trim()),
-                        correctAnswer: parseInt(card.querySelector('.question-correct').value, 10), 
                         points: parseInt(card.querySelector('.question-points').value, 10),
+                    };
+                    questions.push(questionData);
+                    solutions.push({
+                        correctAnswer: parseInt(card.querySelector('.question-correct').value, 10)
                     });
                 });
                 
@@ -650,13 +667,17 @@
                     chapterIndex: chapterIndex,
                 };
 
+                const solutionPayload = btoa(JSON.stringify(solutions));
+
                 if (id) {
                     await db.collection('lessons').doc(id).update(data);
+                    await db.collection('quizSolutions').doc(id).set({ payload: solutionPayload });
                     await updateCurriculumInCourse(data, id, false);
                 } else {
                     const lessonsInChapter = await db.collection('lessons').where('courseId', '==', data.courseId).where('chapterIndex', '==', data.chapterIndex).get();
                     data.order = lessonsInChapter.size;
                     const newDocRef = await db.collection('lessons').add(data);
+                    await db.collection('quizSolutions').doc(newDocRef.id).set({ payload: solutionPayload });
                     await updateCurriculumInCourse(data, newDocRef.id, true);
                 }
                 closeModal('quiz-modal');
