@@ -416,14 +416,18 @@
                 const questionsContainer = modal.querySelector('#questions-container');
                 questionsContainer.innerHTML = '';
 
-                if (quiz) {
+                if (quiz && quiz.questions) {
                     const solutionDoc = await db.collection('quizSolutions').doc(quiz.id).get();
                     if (solutionDoc.exists) {
                         const solutions = JSON.parse(atob(solutionDoc.data().payload));
                         quiz.questions.forEach((q, i) => {
-                            q.correctAnswer = solutions[i].correctAnswer;
+                            if (solutions[i]) {
+                                q.correctAnswer = solutions[i].correctAnswer;
+                            }
                             addQuestionToForm(q);
                         });
+                    } else {
+                        quiz.questions.forEach(addQuestionToForm);
                     }
                 }
                 modal.classList.add('show');
@@ -564,16 +568,17 @@
 
             document.getElementById('save-chapter-name-btn').addEventListener('click', async () => {
                 const modal = document.getElementById('edit-chapter-modal');
-                const index = modal.dataset.chapterIndex;
+                const indexStr = modal.dataset.chapterIndex;
                 const newName = modal.querySelector('#new-chapter-name').value.trim();
                 if (!newName) { alert("Chapter name cannot be empty."); return; }
                 
                 const updatedChapters = [...currentCourse.chapters];
                 const updatedCurriculum = [...(currentCourse.curriculum || [])];
                 
-                if (index !== null && index !== 'null' && index !== '') {
-                    const oldName = updatedChapters[parseInt(index, 10)];
-                    updatedChapters[parseInt(index, 10)] = newName;
+                if (indexStr && indexStr !== 'null') {
+                    const index = parseInt(indexStr, 10);
+                    const oldName = updatedChapters[index];
+                    updatedChapters[index] = newName;
                     const curriculumChapter = updatedCurriculum.find(c => c.chapterTitle === oldName);
                     if (curriculumChapter) curriculumChapter.chapterTitle = newName;
                 } else {
@@ -638,7 +643,7 @@
                 closeModal('lesson-modal');
             });
 
-            document.getElementById('save-quiz-btn').addEventListener('click', async () => {
+             document.getElementById('save-quiz-btn').addEventListener('click', async () => {
                 const modal = document.getElementById('quiz-modal');
                 const form = document.getElementById('quiz-form');
                 if (!form.checkValidity()) { form.reportValidity(); return; }
