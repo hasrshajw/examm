@@ -196,10 +196,12 @@
 
             const initializeApp = async () => {
                 const urlParams = new URLSearchParams(window.location.search);
-                courseId = urlParams.get('id');
+                courseId = urlParams.get('courseId');
+                const requestedItemId = urlParams.get('itemId');
+
                 if (!courseId) {
                     alert('Course ID is missing.');
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'course.html';
                     return;
                 }
 
@@ -211,7 +213,7 @@
 
                     if (!courseDoc.exists) {
                         alert('Course not found.');
-                        window.location.href = 'dashboard.html';
+                        window.location.href = 'course.html';
                         return;
                     }
                     
@@ -219,12 +221,23 @@
                     progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     
                     dom.sidebarTitle.textContent = courseData.name;
-                    dom.backToSubjectLink.href = courseData.page;
+                    dom.backToSubjectLink.href = `course.html?id=${courseId}`;
 
-                    allItems = (courseData.curriculum || []).flatMap(chapter => chapter.items.map((item, index) => ({...item, chapterTitle: chapter.chapterTitle, order: index })));
+                    allItems = (courseData.curriculum || []).flatMap(chapter => 
+                        chapter.items.map((item, index) => ({
+                            ...item, 
+                            chapterTitle: chapter.chapterTitle, 
+                            chapterIndex: (courseData.curriculum || []).findIndex(c => c.chapterTitle === chapter.chapterTitle),
+                            order: index 
+                        }))
+                    );
                     
-                    const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
-                    currentItemId = firstUncompletedItem ? firstUncompletedItem.id : (allItems.length > 0 ? allItems[allItems.length - 1].id : null);
+                    if (requestedItemId && allItems.some(item => item.id === requestedItemId)) {
+                        currentItemId = requestedItemId;
+                    } else {
+                        const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
+                        currentItemId = firstUncompletedItem ? firstUncompletedItem.id : (allItems.length > 0 ? allItems[0].id : null);
+                    }
                     
                     if (currentItemId) {
                         navigateToItem(currentItemId);
@@ -251,6 +264,7 @@
             const navigateToItem = (itemId) => {
                 currentItemId = itemId;
                 userQuizAnswers = {};
+                window.history.pushState({itemId: itemId}, '', `?courseId=${courseId}&itemId=${itemId}`);
                 renderAll();
                 closeMobileMenu();
             };
@@ -442,10 +456,18 @@
                 }
                 dom.completeBtn.disabled = true;
 
+                const solutionDoc = await db.collection('quizSolutions').doc(currentItemId).get();
+                if (!solutionDoc.exists) {
+                    alert('Could not find answers for this quiz. Please contact support.');
+                    dom.completeBtn.disabled = false;
+                    return;
+                }
+                const solutions = JSON.parse(atob(solutionDoc.data().payload));
+
                 let score = 0;
                 const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
                 questions.forEach((q, index) => {
-                    if (userQuizAnswers[index] === q.correctAnswer) {
+                    if (userQuizAnswers[index] === solutions[index].correctAnswer) {
                         score += (q.points || 0);
                     }
                 });
@@ -491,6 +513,12 @@
             dom.menuToggle.addEventListener('click', openMobileMenu);
             dom.overlay.addEventListener('click', closeMobileMenu);
             dom.closeMenuBtn.addEventListener('click', closeMobileMenu);
+            
+            window.addEventListener('popstate', (event) => {
+                if (event.state && event.state.itemId) {
+                    navigateToItem(event.state.itemId);
+                }
+            });
         });
     </script>
 </body>
