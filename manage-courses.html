@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Courses - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB;
+            --text-primary: #111827; --text-secondary: #6B7280; --brand-purple: #6D28D9;
+            --brand-purple-hover: #5B21B6; --hover-bg: #F3F4F6; --danger-color: #EF4444;
+            --danger-hover: #DC2626; --danger-bg-light: #FEE2E2; --danger-text-dark: #B91C1C;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .content-body { padding: 2rem 2.5rem; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 3rem; }
+        .logo-image { height: 40px; }
+        .main-nav { flex-grow: 1; }
+        .main-nav ul { display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
+        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
+        .main-nav a.active i { color: var(--brand-purple); }
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { padding-top: 0.5rem; }
+        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); }
+        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); }
+        .popup-list a.logout { color: var(--danger-color); }
+        .admin-content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .admin-content-header h1 { font-size: 1.875rem; font-weight: 700; color: var(--text-primary); }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .primary-btn, .secondary-btn, .danger-btn { padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; transition: all 0.2s ease-in-out; border: none; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .primary-btn { background-color: var(--brand-purple); color: white; }
+        .primary-btn:hover { background-color: var(--brand-purple-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .secondary-btn { color: var(--text-primary); background-color: var(--widget-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+        .secondary-btn:hover { background-color: var(--hover-bg); }
+        .danger-btn { background-color: var(--danger-color); color: white; }
+        .danger-btn:hover { background-color: var(--danger-hover); }
+        .menu-toggle, .sidebar-close-btn { display: none; }
+        .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .subject-card { background-color: var(--widget-bg); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: all 0.2s ease; }
+        .subject-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .card-content { padding: 1.5rem; flex-grow: 1; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem; }
+        .card-header h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+        .card-menu { position: relative; }
+        .action-btn { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; }
+        .action-btn:hover { background-color: var(--hover-bg); }
+        .action-btn i { font-size: 1.5rem; color: var(--text-secondary); }
+        .action-dropdown { position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background-color: var(--widget-bg); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); z-index: 15; min-width: 150px; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.95); transition: opacity 0.15s ease, transform 0.15s ease; }
+        .action-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+        .action-item { display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; padding: 0.75rem; border-radius: 8px; background: none; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s ease, color 0.2s ease; }
+        .action-item:hover { background-color: var(--hover-bg); }
+        .action-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .action-item.delete { color: var(--danger-color); }
+        .card-filename { color: var(--text-secondary); font-size: 0.875rem; font-family: monospace; }
+        .card-actions { border-top: 1px solid var(--border-color); padding: 1rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; background-color: #F9FAFB; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+        .card-actions .action-link { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s ease; text-align: center; }
+        .card-actions .action-link svg { width: 16px; height: 16px; }
+        .card-actions .action-link--primary { background-color: var(--hover-bg); color: var(--text-primary); }
+        .card-actions .action-link--primary:hover { background-color: var(--border-color); }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 1999; display: grid; place-items: center; padding: 1rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out; backdrop-filter: blur(4px); }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--widget-bg); border-radius: 1rem; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s ease-in-out; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { font-size: 1.25rem; font-weight: 700; }
+        .close-btn { background: none; border: none; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s ease; font-size: 1.75rem; color: var(--text-secondary); }
+        .close-btn:hover { background-color: var(--hover-bg); }
+        .modal-body { padding: 1.5rem 2rem; }
+        .form-field { margin-bottom: 1.25rem; }
+        .form-field label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .form-field input { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-field input:focus { outline: none; border-color: var(--brand-purple); box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2); }
+        .modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); background-color: #F9FAFB; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; display: flex; justify-content: flex-end; gap: 0.75rem; }
+        .confirm-modal .modal-content { max-width: 420px; }
+        .confirm-modal .modal-body { text-align: center; padding: 2rem 1.5rem 1.5rem; }
+        .confirm-icon { width: 48px; height: 48px; border-radius: 50%; background-color: var(--danger-bg-light); color: var(--danger-color); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+        .confirm-icon svg { width: 24px; height: 24px; }
+        .confirm-modal h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .confirm-modal p { color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5; }
+        .confirm-modal .modal-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem; }
+        .action-overlay { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
+        .action-overlay.show { display: flex; }
+        .spinner { border: 4px solid var(--hover-bg); border-top: 4px solid var(--brand-purple); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .action-overlay p { font-weight: 600; color: var(--text-primary); }
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .overlay.active { opacity: 1; pointer-events: auto; }
+        }
+        @media (max-width: 480px) {
+            .admin-content-header { flex-direction: column; align-items: stretch; }
+            .admin-content-header h1 { text-align: center; }
+            .primary-btn { width: 100%; }
+            .content-body { padding: 1rem; }
+            .main-header { padding: 1rem; }
+            .confirm-modal .modal-footer { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center; font-weight: 600;">Authenticating...</div>
+    <div class="overlay" id="overlay"></div>
+    <div class="action-overlay" id="action-overlay"><div class="spinner"></div><p>Deleting course and all related data...</p></div>
+    <div class="dashboard-container" style="display: none;">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header"><img src="https://ihtnas.com/assets/ihtnas-nav.png" alt="Ihtnas Logo" class="logo-image"></div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="admin.html"><i class='bx bxs-dashboard'></i> Dashboard</a></li>
+                    <li><a href="manage-courses.html" class="active"><i class='bx bxs-layer'></i> Courses</a></li>
+                    <li><a href="manage-colleges.html"><i class='bx bxs-school'></i> Colleges</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section" id="profile-section">
+                <img src="" alt="Profile Picture" class="profile-avatar">
+                <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+            </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <img src="" alt="Profile Picture" class="profile-avatar">
+                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                </div>
+                <ul class="popup-list">
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Open menu"><i class='bx bx-menu'></i></button>
+                <h1>Manage Courses</h1>
+            </header>
+            <section class="content-body">
+                <div class="admin-content-header">
+                    <h1>All Courses</h1>
+                    <button class="primary-btn" id="create-course-btn"><i class='bx bx-plus'></i> Create New Course</button>
+                </div>
+                <div class="subjects-grid" id="courses-grid"></div>
+            </section>
+        </main>
+    </div>
+    <div class="modal-overlay" id="course-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="course-modal-title"></h3><button class="close-btn">&times;</button></div>
+            <div class="modal-body">
+                <form id="course-form">
+                    <input type="hidden" id="course-id">
+                    <div class="form-field"><label for="course-name">Course Name</label><input type="text" id="course-name" required></div>
+                    <div class="form-field"><label for="course-page">Page Filename (e.g., course.html)</label><input type="text" id="course-page" required></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="secondary-btn">Cancel</button><button class="primary-btn" id="save-course-btn">Save Course</button></div>
+        </div>
+    </div>
+    <div class="modal-overlay confirm-modal" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.99561 7H20.9956" stroke="currentColor" stroke-width="2"></path><path d="M9.99561 11V17M13.9956 11V17" stroke="currentColor" stroke-width="2"></path><path d="M8 6.5L8.68917 4.08792C8.87315 3.44397 9.46173 3 10.1315 3H13.8685C14.5383 3 15.1268 3.44397 15.3108 4.08792L16 6.5" stroke="currentColor" stroke-width="2"></path><path d="M5 7L5.80098 18.2137C5.91312 19.7837 7.21944 21 8.79336 21H15.2066C16.7806 21 18.0869 19.7837 18.199 18.2137L19 7" stroke="currentColor" stroke-width="2"></path></svg></div>
+                <h4 id="confirm-title">Are you sure?</h4>
+                <p id="confirm-text">Do you really want to delete this item? This process cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" id="confirm-cancel-btn">Cancel</button>
+                <button class="danger-btn" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+                authDomain: "exam-2e799.firebaseapp.com",
+                projectId: "exam-2e799",
+                storageBucket: "exam-2e799.firebasestorage.app",
+                messagingSenderId: "472506328501",
+                appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+                measurementId: "G-NX21HT3JKT"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const ADMIN_EMAIL = "harshavardhanjw@gmail.com";
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user && user.email === ADMIN_EMAIL) {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    initSharedUI(userDoc.exists ? userDoc.data() : { displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+                    loadCourses();
+                } else {
+                    window.location.href = 'index.html';
+                }
+            });
+
+            const initSharedUI = (adminProfile) => {
+                document.querySelectorAll('.profile-avatar').forEach(el => el.src = adminProfile.photoURL || '');
+                document.querySelectorAll('.profile-name').forEach(el => el.textContent = adminProfile.displayName);
+                document.querySelectorAll('.profile-email').forEach(el => el.textContent = adminProfile.email);
+                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+                const profileSection = document.getElementById('profile-section');
+                const profilePopup = document.getElementById('profile-popup');
+                profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
+                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menu-toggle');
+                const closeBtn = document.getElementById('sidebar-close-btn');
+                const overlay = document.getElementById('overlay');
+                const toggleMenu = () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); };
+                menuToggle.addEventListener('click', toggleMenu);
+                closeBtn.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+                document.querySelector('.dashboard-container').style.display = 'grid';
+                document.getElementById('loading-overlay').style.display = 'none';
+            };
+
+            const loadCourses = () => {
+                const gridContainer = document.getElementById('courses-grid');
+                db.collection('courses').orderBy('name').onSnapshot(snapshot => {
+                    gridContainer.innerHTML = '';
+                    if (snapshot.empty) {
+                        gridContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary);">No courses found. Click "Create New Course" to add one.</p>';
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const course = doc.data();
+                        const card = document.createElement('div');
+                        card.className = 'subject-card';
+                        card.innerHTML = `
+                            <div class="card-content">
+                                <div class="card-header">
+                                    <h3>${course.name}</h3>
+                                    <div class="card-menu">
+                                        <button class="action-btn menu-btn" aria-label="Actions"><i class='bx bx-dots-vertical-rounded'></i></button>
+                                        <div class="action-dropdown">
+                                            <button class="action-item edit-btn" data-id="${doc.id}">
+                                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.25 5.75C16.8693 4.36929 14.6307 4.36929 13.25 5.75L10.125 8.875L5.52404 13.476C4.86236 14.1376 4.45361 15.0104 4.36889 15.9423L4 20.0001L8.0578 19.6311C8.98967 19.5464 9.86234 19.1377 10.524 18.476L18.25 10.75C19.6307 9.36929 19.6307 7.13071 18.25 5.75V5.75Z" stroke="currentColor" stroke-width="2"></path><path d="M12.5 7.5L16.5 11.5" stroke="currentColor" stroke-width="2"></path></svg>
+                                                Edit
+                                            </button>
+                                            <button class="action-item delete delete-btn" data-id="${doc.id}">
+                                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.99561 7H20.9956" stroke="currentColor" stroke-width="2"></path><path d="M9.99561 11V17M13.9956 11V17" stroke="currentColor" stroke-width="2"></path><path d="M8 6.5L8.68917 4.08792C8.87315 3.44397 9.46173 3 10.1315 3H13.8685C14.5383 3 15.1268 3.44397 15.3108 4.08792L16 6.5" stroke="currentColor" stroke-width="2"></path><path d="M5 7L5.80098 18.2137C5.91312 19.7837 7.21944 21 8.79336 21H15.2066C16.7806 21 18.0869 19.7837 18.199 18.2137L19 7" stroke="currentColor" stroke-width="2"></path></svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="card-filename">${course.page}</p>
+                            </div>
+                            <div class="card-actions">
+                                <a href="manage-lessons.html?courseId=${doc.id}" class="action-link action-link--primary"><i class='bx bxs-book-content'></i> Content</a>
+                                <a href="manage-exams.html?courseId=${doc.id}" class="action-link action-link--primary"><i class='bx bxs-graduation'></i> Exams</a>
+                                <a href="manage-code.html?courseId=${doc.id}" class="action-link action-link--primary"><i class='bx bxs-terminal'></i> Code Exams</a>
+                            </div>`;
+                        gridContainer.appendChild(card);
+                    });
+                });
+            };
+
+            const openCourseModal = (course = null) => {
+                const modal = document.getElementById('course-modal');
+                modal.querySelector('#course-modal-title').textContent = course ? 'Edit Course' : 'Create New Course';
+                modal.querySelector('#course-id').value = course ? course.id : '';
+                modal.querySelector('#course-name').value = course ? course.name : '';
+                modal.querySelector('#course-page').value = course ? course.page : '';
+                modal.classList.add('show');
+            };
+            
+            let confirmCallback = null;
+            const openConfirmationModal = (title, text, onConfirm) => {
+                const modal = document.getElementById('confirm-modal');
+                modal.querySelector('#confirm-title').textContent = title;
+                modal.querySelector('#confirm-text').textContent = text;
+                confirmCallback = onConfirm;
+                modal.classList.add('show');
+            };
+            const closeModal = (modalId) => {
+                document.getElementById(modalId).classList.remove('show');
+            };
+
+            const deleteCourse = async (courseId) => {
+                openConfirmationModal('Delete Course?', 'This will delete the course and ALL of its lessons, enrollments, exams, and code assignments permanently. This action cannot be undone.', async () => {
+                    const actionOverlay = document.getElementById('action-overlay');
+                    actionOverlay.classList.add('show');
+                    try {
+                        const batch = db.batch();
+                        const collectionsToDelete = ['lessons', 'exams', 'codeAssignments', 'enrollments'];
+                        
+                        for (const collectionName of collectionsToDelete) {
+                            const query = await db.collection(collectionName).where('courseId', '==', courseId).get();
+                            query.forEach(doc => batch.delete(doc.ref));
+                        }
+
+                        const allUsersQuery = await db.collection('users').get();
+                        for (const userDoc of allUsersQuery.docs) {
+                            const progressQuery = await db.collection('users').doc(userDoc.id).collection('progress').where('courseId', '==', courseId).get();
+                            progressQuery.forEach(doc => batch.delete(doc.ref));
+                            const progressSummaryRef = db.collection('users').doc(userDoc.id).collection('progressSummary').doc(courseId);
+                            batch.delete(progressSummaryRef);
+                        }
+                        
+                        batch.delete(db.collection('courses').doc(courseId));
+                        await batch.commit();
+
+                    } catch(error) {
+                        console.error("Deletion failed: ", error);
+                        alert("An error occurred during deletion. Please check the console.");
+                    } finally {
+                        actionOverlay.classList.remove('show');
+                    }
+                });
+            };
+
+            document.addEventListener('click', async e => {
+                const isDropdownButton = e.target.closest('.card-menu .menu-btn');
+                document.querySelectorAll('.action-dropdown.active').forEach(dropdown => {
+                    if (!isDropdownButton || dropdown !== dropdown.nextElementSibling) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+                if (isDropdownButton) {
+                    isDropdownButton.nextElementSibling.classList.toggle('active');
+                }
+                
+                const button = e.target.closest('button');
+                if (!button) return;
+                
+                if (button.id === 'create-course-btn') openCourseModal();
+                if (button.matches('.edit-btn')) {
+                    const doc = await db.collection('courses').doc(button.dataset.id).get();
+                    openCourseModal({ id: doc.id, ...doc.data() });
+                }
+                if (button.matches('.delete-btn')) deleteCourse(button.dataset.id);
+                if (button.matches('.modal-overlay .close-btn, .modal-footer .secondary-btn')) {
+                    button.closest('.modal-overlay').classList.remove('show');
+                }
+                if(button.id === 'confirm-cancel-btn') closeModal('confirm-modal');
+                if(button.id === 'confirm-delete-btn') {
+                    if (confirmCallback) confirmCallback();
+                    closeModal('confirm-modal');
+                }
+            });
+
+            document.getElementById('save-course-btn').addEventListener('click', async () => {
+                const id = document.getElementById('course-id').value;
+                const courseName = document.getElementById('course-name').value.trim();
+                const coursePage = document.getElementById('course-page').value.trim();
+                if (!courseName || !coursePage) { alert('All fields are required.'); return; }
+                const courseData = { 
+                    name: courseName, 
+                    page: coursePage,
+                };
+                
+                if (id) {
+                    await db.collection('courses').doc(id).update(courseData);
+                } else {
+                    courseData.chapters = [];
+                    courseData.curriculum = [];
+                    await db.collection('courses').add(courseData);
+                }
+                closeModal('course-modal');
+            });
+        });
+    </script>
+</body>
+</html>
