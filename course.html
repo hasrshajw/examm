@@ -49,9 +49,8 @@
         .breadcrumbs { font-weight: 500; color: var(--brand-green); margin-bottom: 1rem; }
         .breadcrumbs a { color: rgba(255, 255, 255, 0.7); text-decoration: none; } .breadcrumbs a:hover { text-decoration: underline; }
         .hero-title { font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; }
-        .content-body { padding: 2rem 3rem 3rem 3rem; display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: flex-start; }
+        .content-body { padding: 2rem 3rem 3rem 3rem; }
         .main-content { min-width: 0; }
-        .content-sidebar { position: sticky; top: calc(2rem + 73px); }
         .pill-nav-container { display: flex; justify-content: flex-start; margin-bottom: 2rem; }
         .pill-nav { position: relative; display: inline-flex; background-color: var(--hover-bg); border-radius: 99px; padding: 0.25rem; }
         .nav-tab { border: none; background: none; padding: 0.5rem 1.25rem; font-size: 1rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); border-radius: 99px; position: relative; z-index: 2; transition: color 0.3s ease; }
@@ -78,32 +77,22 @@
         .card[data-status="locked"] { opacity: 0.7; background-color: var(--hover-bg); pointer-events: none; }
         .card-prefix--locked { background-color: #E5E7EB; color: var(--text-secondary); }
         .card-button--locked { background-color: var(--border-color); color: var(--text-secondary); cursor: not-allowed; }
-        .sidebar-card { background-color: var(--widget-bg); border-radius: 1rem; padding: 1.5rem; border: 2px solid var(--border-color); }
-        .sidebar-card h4 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .stat-item { text-align: center; } .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
-        .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
-        .modal-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 1999; display: grid; place-items: center; padding: 1rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out; backdrop-filter: blur(4px); }
-        .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal-content { background-color: var(--widget-bg); border-radius: 1rem; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s ease-in-out; }
-        .modal-overlay.show .modal-content { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
-        .modal-header h3 { font-size: 1.25rem; font-weight: 700; }
-        .close-btn { background: none; border: none; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s ease; font-size: 1.75rem; color: var(--text-secondary); }
-        .close-btn:hover { background-color: var(--hover-bg); }
-        .modal-body { padding: 1.5rem 2rem; text-align: center; }
-        .modal-body p { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
-        .modal-body h2 { font-size: 3rem; font-weight: 700; color: var(--brand-green); margin-bottom: 1rem; }
         .menu-toggle { display: none; } .sidebar-close-btn { display: none; }
+        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 1.5rem; box-shadow: var(--shadow); }
+        .featured-course { background-color: var(--text-primary); color: #FFFFFF; border: none; margin-bottom: 2rem; }
+        .featured-course h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, 0.7); margin-bottom: 0.5rem; }
+        .featured-course h3 { font-size: 1.75rem; font-weight: 600; margin-bottom: 1.5rem; }
+        .progress-bar-container { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-bottom: 0.75rem; }
+        .progress-bar-inner { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.5s ease; }
+        .progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; color: rgba(255,255,255,0.8); font-size: 0.9rem; font-weight: 500; }
+        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-continue:hover { background-color: #2da967; }
         
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
         .skeleton-line { height: 14px; border-radius: 4px; }
         .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .skeleton-pill-nav { display: inline-flex; background-color: #e2e8f0; border-radius: 99px; padding: 0.25rem; position: relative;}
-        .skeleton-pill { width: 110px; height: 32px; border-radius: 99px; margin: 2px; }
-        .skeleton-pill-nav::before { content:''; position: absolute; top: 0.25rem; bottom: 0.25rem; left: 0.25rem; width: 114px; background-color: var(--widget-bg); border-radius: 99px; z-index: 1;}
 
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
@@ -112,7 +101,6 @@
             .main-header { padding: 1.25rem 1.5rem; } .main-header h1 { font-size: 1.25rem; }
             .hero-section { padding: 2rem 1.5rem; } .hero-title { font-size: 2.25rem; }
             .content-body { grid-template-columns: 1fr; padding: 1.5rem; }
-            .content-sidebar { position: static; width: 100%; }
             .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; }
             .menu-toggle:hover { background-color: var(--hover-bg); }
             .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; transition: color 0.2s ease; }
@@ -120,8 +108,6 @@
             .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
             .overlay.active { opacity: 1; pointer-events: auto; }
             .pill-nav-container { justify-content: center; }
-            .stat-value { font-size: 1.5rem; }
-            .stat-label { font-size: 0.8rem; }
             .chapter-title { font-size: 1.25rem; }
             .card { padding: 0.6rem; }
             .card-title { font-size: 0.95rem; }
@@ -174,7 +160,7 @@
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1>Course & Content</h1>
+                <h1 id="main-header-title">Course & Content</h1>
             </header>
             <div id="skeleton-loader">
                 <section class="hero-section">
@@ -185,73 +171,42 @@
                 </section>
                 <div class="content-body">
                     <div class="main-content">
-                        <div class="pill-nav-container">
-                            <div class="skeleton-pill-nav">
-                                <div class="skeleton-pill"></div>
-                                <div class="skeleton-pill"></div>
+                        <div class="widget skeleton" style="background-color: var(--text-primary); border-color: var(--text-primary); margin-bottom: 2rem;">
+                           <div style="display: flex; flex-direction: column; gap: 1rem;">
+                               <div class="skeleton-line" style="width: 40%; height: 12px; background-color: rgba(255,255,255,0.2);"></div>
+                               <div class="skeleton-line" style="width: 100%; height: 8px; margin-top: 1rem; background-color: rgba(255,255,255,0.2);"></div>
+                               <div class="skeleton" style="width: 140px; height: 42px; border-radius: 8px; margin-top: 1rem; background-color: rgba(255,255,255,0.2);"></div>
                             </div>
                         </div>
-                        <div class="chapter-group" style="margin-bottom: 2.5rem;">
+                        <div class="chapter-group">
                             <div class="skeleton skeleton-line" style="width: 250px; height: 24px; margin-bottom: 1.5rem; border-radius: 8px;"></div>
-                            <div class="content-list">
-                                <div class="card" style="border-color: transparent; box-shadow: none;"><div class="skeleton skeleton-avatar"></div><div class="card-info" style="flex-grow: 1;"><p class="skeleton skeleton-line" style="height: 16px; width: 80%; margin-bottom: 0.5rem;"></p><p class="skeleton skeleton-line" style="height: 14px; width: 40%;"></p></div><div class="skeleton" style="height: 38px; min-width: 120px; border-radius: var(--radius-lg);"></div></div>
-                                <div class="card" style="border-color: transparent; box-shadow: none;"><div class="skeleton skeleton-avatar"></div><div class="card-info" style="flex-grow: 1;"><p class="skeleton skeleton-line" style="height: 16px; width: 75%; margin-bottom: 0.5rem;"></p><p class="skeleton skeleton-line" style="height: 14px; width: 35%;"></p></div><div class="skeleton" style="height: 38px; min-width: 120px; border-radius: var(--radius-lg);"></div></div>
-                            </div>
                         </div>
                     </div>
-                    <aside class="content-sidebar">
-                        <div class="sidebar-card" style="border: none; box-shadow: var(--shadow);">
-                            <h4 class="skeleton skeleton-line" style="height: 20px; width: 150px; margin-bottom: 1.5rem; border-radius: 8px;"></h4>
-                            <div class="stat-grid">
-                                <div class="stat-item"><div class="skeleton" style="width: 50px; height: 28px; margin: 0 auto 0.5rem; border-radius: 8px;"></div><div class="skeleton skeleton-line" style="width: 60px; height: 14px; margin: 0 auto;"></div></div>
-                                <div class="stat-item"><div class="skeleton" style="width: 50px; height: 28px; margin: 0 auto 0.5rem; border-radius: 8px;"></div><div class="skeleton skeleton-line" style="width: 60px; height: 14px; margin: 0 auto;"></div></div>
-                            </div>
-                        </div>
-                    </aside>
                 </div>
             </div>
             <div id="real-content" style="display:none; contents;">
                 <section class="hero-section">
                     <div class="container">
-                        <p class="breadcrumbs"><a href="dashboard.html">Dashboard</a> &gt; <span id="subject-breadcrumb"></span></p>
-                        <h1 class="hero-title" id="subject-title"></h1>
+                        <p class="breadcrumbs">My Learning</p>
+                        <h1 class="hero-title" id="course-title-hero"></h1>
                     </div>
                 </section>
                 <div class="content-body">
                     <div class="main-content">
-                        <div class="pill-nav-container">
-                            <div class="pill-nav">
-                                <div id="pill-slider"></div>
-                                <button id="courseTab" class="nav-tab active">Curriculum</button>
-                                <button id="assessmentsTab" class="nav-tab">Assessments</button>
+                        <div class="widget featured-course" id="featured-course-widget">
+                            <h4>CONTINUE LEARNING</h4>
+                            <div class="progress-info">
+                                <span id="progress-text-long">Calculating...</span>
+                                <span id="progress-percent">0%</span>
                             </div>
+                            <div class="progress-bar-container"><div class="progress-bar-inner" id="progress-bar-inner"></div></div>
+                            <a href="#" class="btn-continue" id="continue-course-link">Continue</a>
                         </div>
-                        <div id="courseContent" class="content-section active"></div>
-                        <div id="assessmentsContent" class="content-section"></div>
+                        <div id="course-content-container"></div>
                     </div>
-                    <aside class="content-sidebar">
-                        <div id="sidebarCard" class="sidebar-card">
-                            <h4>Course Progress</h4>
-                            <div class="stat-grid">
-                                <div class="stat-item"><div class="stat-value" id="stat-lessons">0/0</div><div class="stat-label">Lessons</div></div>
-                                <div class="stat-item"><div class="stat-value" id="stat-completed">0%</div><div class="stat-label">Completed</div></div>
-                            </div>
-                        </div>
-                    </aside>
                 </div>
             </div>
         </main>
-    </div>
-    
-    <div class="modal-overlay" id="results-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3 id="results-modal-title"></h3><button class="close-btn">&times;</button></div>
-            <div class="modal-body">
-                <p>Your Score</p>
-                <h2 id="results-modal-score"></h2>
-                <p id="results-modal-details"></p>
-            </div>
-        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -291,22 +246,6 @@
                 menuToggle.addEventListener('click', toggleMenu);
                 closeBtn.addEventListener('click', toggleMenu);
                 overlay.addEventListener('click', toggleMenu);
-                const tabs = document.querySelectorAll('.nav-tab');
-                const slider = document.getElementById('pill-slider');
-                function moveSlider(tab) { if(tab && slider) { slider.style.width = `${tab.offsetWidth}px`; slider.style.left = `${tab.offsetLeft}px`; }}
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', (e) => {
-                        tabs.forEach(t => t.classList.remove('active'));
-                        e.currentTarget.classList.add('active');
-                        moveSlider(e.currentTarget);
-                        const isCourseTab = e.currentTarget.id === 'courseTab';
-                        document.getElementById('courseContent').classList.toggle('active', isCourseTab);
-                        document.getElementById('assessmentsContent').classList.toggle('active', !isCourseTab);
-                    });
-                });
-                document.querySelector('#results-modal .close-btn').addEventListener('click', () => {
-                    document.getElementById('results-modal').classList.remove('show');
-                });
             };
 
             const updateProfileUI = (userProfile) => {
@@ -371,35 +310,27 @@
                     const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     const curriculum = courseData.curriculum || [];
 
-                    document.getElementById('subject-title').textContent = courseData.name;
-                    document.getElementById('subject-breadcrumb').textContent = courseData.name;
+                    document.getElementById('course-title-hero').textContent = courseData.name;
+                    document.getElementById('main-header-title').textContent = courseData.name;
                     
                     if (curriculum.length === 0) {
-                        document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
-                        document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
+                        document.getElementById('course-content-container').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
+                        document.getElementById('featured-course-widget').style.display = 'none';
                     } else {
                         renderCurriculum(courseData, progressData);
+                        updateProgressWidgets(curriculum, progressData, courseId);
                     }
-
-                    renderSidebarStats(curriculum, progressData);
-
                 } catch(error) {
                     console.error("Error loading content:", error);
                     document.querySelector('.main-area').innerHTML = '<h1>Error loading course content.</h1>';
                 } finally {
                     document.getElementById('skeleton-loader').style.display = 'none';
                     document.getElementById('real-content').style.display = 'contents';
-                    const activeTab = document.querySelector('.nav-tab.active');
-                    const slider = document.getElementById('pill-slider');
-                    if(activeTab && slider) {
-                        slider.style.width = `${activeTab.offsetWidth}px`;
-                        slider.style.left = `${activeTab.offsetLeft}px`;
-                    }
                 }
             };
 
             const renderCurriculum = (courseData, progressData) => {
-                const container = document.getElementById('courseContent');
+                const container = document.getElementById('course-content-container');
                 container.innerHTML = '';
                 const allItems = courseData.curriculum.flatMap(c => c.items);
                 const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
@@ -417,7 +348,7 @@
                         card.className = 'card';
                         const isCompleted = progressData[item.id];
                         const isNext = firstUncompletedItem && item.id === firstUncompletedItem.id;
-                        let status, prefixClass, buttonHtml = '', statusIcon = '', metaText = '', iconClass = '';
+                        let status, prefixClass, buttonHtml = '', statusIcon = '', iconClass = '';
 
                         iconClass = item.type === 'quiz' ? 'bxs-help-circle' : 'bxs-file-blank';
                         
@@ -446,14 +377,28 @@
                 });
             };
 
-            const renderSidebarStats = (curriculum, progressData) => {
+            const updateProgressWidgets = (curriculum, progressData, courseId) => {
                 const allItems = curriculum.flatMap(c => c.items);
                 const totalItems = allItems.length;
                 const completedItems = allItems.filter(item => progressData[item.id]).length;
                 const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
                 
-                document.getElementById('stat-lessons').textContent = `${completedItems}/${totalItems}`;
-                document.getElementById('stat-completed').textContent = `${progressPercent}%`;
+                document.getElementById('progress-text-long').textContent = `${completedItems} / ${totalItems} items completed`;
+                document.getElementById('progress-percent').textContent = `${progressPercent}%`;
+                document.getElementById('progress-bar-inner').style.width = `${progressPercent}%`;
+
+                const continueLink = document.getElementById('continue-course-link');
+                const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
+
+                if (firstUncompletedItem) {
+                    continueLink.href = `course-view.html?id=${courseId}`;
+                    continueLink.textContent = 'Continue Learning';
+                } else if (totalItems > 0) {
+                    continueLink.href = `course-view.html?id=${courseId}`;
+                    continueLink.textContent = 'Review Course';
+                } else {
+                    continueLink.style.display = 'none';
+                }
             };
         });
     </script>
