@@ -368,6 +368,8 @@
                     renderScoreHistory();
                 } catch(error) {
                     console.error("Error loading leaderboard data: ", error);
+                    document.getElementById('overall-content').innerHTML = '<p>Could not load leaderboard data. Please try again later.</p>';
+                    document.getElementById('college-content').innerHTML = '<p>Could not load leaderboard data. Please try again later.</p>';
                 } finally {
                     document.getElementById('skeleton-loader').style.display = 'none';
                     document.getElementById('real-content').style.display = 'grid';
