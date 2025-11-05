@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Code Assignments - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root { --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB; --text-primary: #002726; --text-secondary: #6B7280; --brand-purple: #6D28D9; --hover-bg: #F3F4F6; --danger-color: #EF4444; --success-color: #10B981; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        a { text-decoration: none; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .content-body { padding: 2rem 3rem; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 3rem; } .logo-image { height: 40px; }
+        .main-nav { flex-grow: 1; } .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); } .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; } .main-nav a.active i { color: var(--brand-purple); }
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { list-style: none; padding-top: 0.5rem; } .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); } .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); } .popup-list a.logout { color: var(--danger-color); }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .admin-view { display: none; } .admin-view.active { display: block; }
+        .admin-content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .admin-content-header h2 { font-size: 2rem; font-weight: 700; }
+        .primary-btn, .secondary-btn { padding: 0.6rem 1.25rem; border-radius: 8px; font-weight: 600; transition: all 0.2s ease; border: none; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .primary-btn { background-color: var(--brand-purple); color: white; }
+        .primary-btn:hover { background-color: #5B21B6; }
+        .secondary-btn { color: var(--text-primary); background-color: var(--hover-bg); }
+        .secondary-btn:hover { background-color: var(--border-color); }
+        .back-btn { margin-bottom: 1rem; font-weight: 500; color: var(--brand-purple); display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; cursor: pointer; }
+        .admin-table { width: 100%; background-color: var(--widget-bg); border-radius: 12px; box-shadow: var(--shadow); border-collapse: collapse; overflow: hidden; border: 1px solid var(--border-color); }
+        .admin-table th, .admin-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .admin-table th { background: #F9FAFB; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .action-btn, .delete-btn { font-weight: 600; background: none; border: none; cursor: pointer; }
+        .action-btn { color: var(--brand-purple); margin-right: 1rem; } .delete-btn { color: var(--danger-color); }
+        .lock-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .lock-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--danger-color); transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; backdrop-filter: blur(4px); }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-content { background-color: var(--widget-bg); padding: 2rem; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .modal-header h3 { font-size: 1.5rem; }
+        .close-btn { font-size: 1.75rem; color: var(--text-secondary); cursor: pointer; border: none; background: none; }
+        .modal-body { flex-grow: 1; overflow-y: auto; }
+        .form-field { margin-bottom: 1rem; }
+        .form-field label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
+        .form-field input, .form-field textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; font-family: 'IBM Plex Sans', sans-serif; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .full-width { grid-column: 1 / -1; }
+        .testcase-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-top: 1rem; position: relative; }
+        .remove-item-btn { position: absolute; top: 8px; right: 8px; background: var(--hover-bg); color: var(--danger-color); border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-footer { padding-top: 1.5rem; border-top: 1px solid var(--border-color); margin-top: 1.5rem; text-align: right; }
+        .problem-container { display: flex; flex-direction: column; gap: 1.5rem; }
+        .problem-card { background-color: var(--widget-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow); }
+        .problem-header { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .problem-title { font-size: 1.1rem; font-weight: 600; }
+        .problem-header-actions { display: flex; align-items: center; }
+        .problem-header i { font-size: 1.5rem; transition: transform 0.3s ease; }
+        .problem-header.active i { transform: rotate(180deg); }
+        .problem-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; border-top: 1px solid transparent; }
+        .problem-header.active + .problem-body { border-color: var(--border-color); }
+        .problem-body-content { padding: 1.5rem; }
+        .problem-actions { text-align: right; padding-top: 1.5rem; border-top: 1px solid var(--border-color); margin-top: 1.5rem; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+        .menu-toggle, .sidebar-close-btn { display: none; }
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .overlay.active { opacity: 1; pointer-events: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center;">Authenticating...</div>
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container" style="display: none;">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header"><img src="https://ihtnas.com/assets/ihtnas-nav.png" alt="Ihtnas Logo" class="logo-image"></div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="admin.html"><i class='bx bxs-dashboard'></i> Dashboard</a></li>
+                    <li><a href="manage-subjects.html" class="active"><i class='bx bxs-layer'></i> Subjects & Content</a></li>
+                    <li><a href="manage-colleges.html"><i class='bx bxs-school'></i> Colleges</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section" id="profile-section">
+                <img src="" alt="Profile Picture" class="profile-avatar">
+                <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+            </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <img src="" alt="Profile Picture" class="profile-avatar">
+                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                </div>
+                <ul class="popup-list">
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
+                <h1>Manage Code Assignments</h1>
+            </header>
+            <section class="content-body">
+                <div id="assignments-view" class="admin-view active">
+                    <a href="manage-subjects.html" class="back-btn"><i class='bx bx-arrow-back'></i> Back to Subjects</a>
+                    <div class="admin-content-header">
+                        <h2 id="page-title"></h2>
+                        <button class="primary-btn" id="create-assignment-btn"><i class='bx bx-plus'></i> Create Assignment</button>
+                    </div>
+                    <table class="admin-table">
+                        <thead><tr><th>Assignment Name</th><th>Problems</th><th>Duration</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="assignments-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="problems-view" class="admin-view">
+                    <button class="back-btn" id="back-to-assignments-btn"><i class='bx bx-arrow-back'></i> Back to Assignments</button>
+                    <div class="admin-content-header">
+                        <h2 id="problems-page-title"></h2>
+                        <div>
+                            <input type="file" id="problems-file-input" accept=".js" style="display: none;">
+                            <button class="secondary-btn" id="upload-problems-btn"><i class='bx bx-upload'></i> Upload File</button>
+                            <button class="primary-btn" id="add-problem-btn"><i class='bx bx-plus'></i> Add Problem</button>
+                        </div>
+                    </div>
+                    <div id="problems-container" class="problem-container"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="assignment-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="assignment-modal-title"></h3><button class="close-btn">&times;</button></div>
+            <div class="modal-body">
+                <form id="assignment-form">
+                    <input type="hidden" id="assignment-id">
+                    <div class="form-field"><label for="assignment-name">Assignment Name</label><input type="text" id="assignment-name" required></div>
+                    <div class="form-grid">
+                        <div class="form-field"><label for="assignment-duration">Duration (minutes)</label><input type="number" id="assignment-duration" required></div>
+                        <div class="form-field"><label for="assignment-deadline">Deadline (Optional)</label><input type="date" id="assignment-deadline"></div>
+                    </div>
+                    <div class="form-field" style="flex-direction: row; align-items: center; gap: 0.5rem;"><input type="checkbox" id="assignment-locked" style="width: auto;"><label for="assignment-locked">Locked for students</label></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="secondary-btn">Cancel</button><button class="primary-btn" id="save-assignment-btn">Save</button></div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+                authDomain: "exam-2e799.firebaseapp.com",
+                projectId: "exam-2e799",
+                storageBucket: "exam-2e799.firebasestorage.app",
+                messagingSenderId: "472506328501",
+                appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+                measurementId: "G-NX21HT3JKT"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const ADMIN_EMAIL = "harshavardhanjw@gmail.com";
+
+            let currentSubject = null;
+            let currentAssignment = null;
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user && user.email === ADMIN_EMAIL) {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    initSharedUI(userDoc.exists ? userDoc.data() : { displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+                    initPage();
+                } else { window.location.href = 'index.html'; }
+            });
+
+            const initSharedUI = (adminProfile) => {
+                document.querySelectorAll('.profile-avatar').forEach(el => el.src = adminProfile.photoURL || '');
+                document.querySelectorAll('.profile-name').forEach(el => el.textContent = adminProfile.displayName);
+                document.querySelectorAll('.profile-email').forEach(el => el.textContent = adminProfile.email);
+                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+                const profileSection = document.getElementById('profile-section');
+                const profilePopup = document.getElementById('profile-popup');
+                profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
+                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menu-toggle');
+                const closeBtn = document.getElementById('sidebar-close-btn');
+                const overlay = document.getElementById('overlay');
+                const toggleMenu = () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); };
+                menuToggle.addEventListener('click', toggleMenu);
+                closeBtn.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+            };
+
+            const initPage = async () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const subjectId = urlParams.get('subjectId');
+                if (!subjectId) { window.location.href = 'manage-subjects.html'; return; }
+                const subjectDoc = await db.collection('subjects').doc(subjectId).get();
+                if (!subjectDoc.exists) { window.location.href = 'manage-subjects.html'; return; }
+                currentSubject = { id: subjectId, ...subjectDoc.data() };
+                document.getElementById('page-title').textContent = `Code Assignments in ${currentSubject.name}`;
+                loadAssignments();
+                document.querySelector('.dashboard-container').style.display = 'grid';
+                document.getElementById('loading-overlay').style.display = 'none';
+            };
+
+            const switchView = (view) => {
+                document.querySelectorAll('.admin-view').forEach(v => v.classList.remove('active'));
+                document.getElementById(`${view}-view`).classList.add('active');
+            };
+
+            const formatDate = (timestamp) => {
+                if (!timestamp) return "No Deadline";
+                return new Date(timestamp.seconds * 1000).toLocaleDateString('en-CA');
+            };
+
+            const loadAssignments = () => {
+                const tbody = document.getElementById('assignments-tbody');
+                db.collection('codeAssignments').where('subjectId', '==', currentSubject.id)
+                  .onSnapshot(snapshot => {
+                    const assignmentPromises = snapshot.docs.map(doc => 
+                        db.collection('codeProblems').where('assignmentId', '==', doc.id).get()
+                          .then(snap => ({ id: doc.id, ...doc.data(), problemCount: snap.size }))
+                    );
+                    Promise.all(assignmentPromises).then(assignments => {
+                        tbody.innerHTML = '';
+                        assignments.sort((a,b) => a.name.localeCompare(b.name)).forEach(assignment => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${assignment.name}</td>
+                                <td>${assignment.problemCount}</td>
+                                <td>${assignment.duration / 60} min</td>
+                                <td>${formatDate(assignment.deadline)}</td>
+                                <td><label class="lock-switch"><input type="checkbox" class="lock-toggle" data-id="${assignment.id}" ${!assignment.isLocked ? 'checked' : ''}><span class="slider"></span></label></td>
+                                <td>
+                                    <button class="action-btn manage-problems-btn" data-id="${assignment.id}" data-name="${assignment.name}">Manage Problems</button>
+                                    <button class="action-btn edit-assignment-btn" data-id="${assignment.id}">Edit</button>
+                                    <button class="delete-btn delete-assignment-btn" data-id="${assignment.id}">Delete</button>
+                                </td>`;
+                            tbody.appendChild(row);
+                        });
+                    });
+                });
+            };
+            
+            const loadProblems = () => {
+                const container = document.getElementById('problems-container');
+                db.collection('codeProblems').where('assignmentId', '==', currentAssignment.id).onSnapshot(snapshot => {
+                    container.innerHTML = '';
+                    snapshot.forEach(doc => container.appendChild(createProblemCard(doc.id, doc.data())));
+                });
+            };
+            
+            const openAssignmentModal = (assignment = null) => {
+                const modal = document.getElementById('assignment-modal');
+                modal.querySelector('#assignment-modal-title').textContent = assignment ? 'Edit Assignment' : 'Create New Assignment';
+                modal.querySelector('#assignment-form').reset();
+                modal.querySelector('#assignment-id').value = assignment ? assignment.id : '';
+                modal.querySelector('#assignment-name').value = assignment ? assignment.name : '';
+                modal.querySelector('#assignment-duration').value = assignment ? assignment.duration / 60 : '';
+                if (assignment && assignment.deadline) {
+                    modal.querySelector('#assignment-deadline').value = new Date(assignment.deadline.seconds * 1000).toISOString().split('T')[0];
+                }
+                modal.querySelector('#assignment-locked').checked = assignment ? assignment.isLocked : true;
+                modal.classList.add('show');
+            };
+
+            const createProblemCard = (id, problem) => {
+                const card = document.createElement('div');
+                card.className = 'problem-card';
+                card.dataset.id = id || `new_${Date.now()}`;
+                card.innerHTML = `
+                    <div class="problem-header">
+                        <span class="problem-title">${problem.title || 'New Problem'}</span>
+                        <div class="problem-header-actions"><i class='bx bx-chevron-down'></i></div>
+                    </div>
+                    <div class="problem-body">
+                        <div class="problem-body-content">
+                            <form class="problem-form">
+                                <div class="form-grid">
+                                    <div class="form-field"><label>Problem Title</label><input type="text" class="problem-title-input" value="${problem.title || ''}" required></div>
+                                    <div class="form-field"><label>Points</label><input type="number" class="problem-points-input" value="${problem.points || ''}" required></div>
+                                </div>
+                                <div class="form-field"><label>Problem Statement (HTML allowed)</label><textarea rows="5" class="problem-statement-input" required>${problem.statement || ''}</textarea></div>
+                                <div class="form-grid">
+                                    <div class="form-field"><label>Function Name</label><input type="text" class="problem-function-name-input" value="${problem.functionName || ''}" required></div>
+                                    <div class="form-field"><label>Starter Code</label><textarea rows="5" class="problem-starter-code-input" required>${problem.starterCode || ''}</textarea></div>
+                                </div>
+                                <h4>Test Cases</h4><div class="testcases-container"></div>
+                                <button type="button" class="secondary-btn add-testcase-btn" style="margin-top: 1rem;">+ Add Test Case</button>
+                                <div class="problem-actions">
+                                    <button type="button" class="delete-btn delete-problem-btn">Delete Problem</button>
+                                    <button type="submit" class="primary-btn">Save Problem</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>`;
+                const testcasesContainer = card.querySelector('.testcases-container');
+                (problem.testCases || []).forEach(tc => testcasesContainer.appendChild(createTestCaseForm(tc)));
+                card.querySelector('.problem-title-input').addEventListener('input', e => {
+                    card.querySelector('.problem-header .problem-title').textContent = e.target.value || 'New Problem';
+                });
+                return card;
+            };
+
+            const createTestCaseForm = (testCase = {}) => {
+                const card = document.createElement('div');
+                card.className = 'testcase-card';
+                card.innerHTML = `
+                    <button type="button" class="remove-item-btn">&times;</button>
+                    <div class="form-field"><label>Input (JSON Object)</label><textarea rows="3" class="testcase-input" required>${testCase.input ? JSON.stringify(testCase.input, null, 2) : ''}</textarea></div>
+                    <div class="form-field"><label>Expected Output (JSON value)</label><textarea rows="2" class="testcase-expected" required>${testCase.expected !== undefined ? JSON.stringify(testCase.expected, null, 2) : ''}</textarea></div>
+                    <div class="form-field" style="flex-direction: row; align-items: center; gap: 0.5rem;"><input type="checkbox" class="testcase-hidden" ${testCase.hidden ? 'checked' : ''} style="width:auto;"><label>Hidden</label></div>`;
+                return card;
+            };
+
+            document.addEventListener('click', async e => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                if (button.id === 'create-assignment-btn') openAssignmentModal();
+                if (button.matches('.edit-assignment-btn')) {
+                    const doc = await db.collection('codeAssignments').doc(button.dataset.id).get();
+                    openAssignmentModal({ id: doc.id, ...doc.data() });
+                }
+                if (button.matches('.delete-assignment-btn')) {
+                    if (confirm('Are you sure? This deletes all problems and scores.')) {
+                        const assignmentId = button.dataset.id;
+                        const batch = db.batch();
+                        const problemsQuery = await db.collection('codeProblems').where('assignmentId', '==', assignmentId).get();
+                        problemsQuery.forEach(doc => batch.delete(doc.ref));
+                        const scoresQuery = await db.collection('codeScores').where('assignmentId', '==', assignmentId).get();
+                        scoresQuery.forEach(doc => batch.delete(doc.ref));
+                        const assignmentScoresQuery = await db.collection('codeAssignmentScores').where('assignmentId', '==', assignmentId).get();
+                        assignmentScoresQuery.forEach(doc => batch.delete(doc.ref));
+                        batch.delete(db.collection('codeAssignments').doc(assignmentId));
+                        await batch.commit();
+                    }
+                }
+                if (button.matches('.manage-problems-btn')) {
+                    currentAssignment = { id: button.dataset.id, name: button.dataset.name };
+                    document.getElementById('problems-page-title').textContent = `Problems in ${currentAssignment.name}`;
+                    loadProblems();
+                    switchView('problems');
+                }
+                if (button.id === 'back-to-assignments-btn') { currentAssignment = null; switchView('assignments'); }
+                if (button.id === 'add-problem-btn') {
+                    const newCard = createProblemCard('', {});
+                    document.getElementById('problems-container').appendChild(newCard);
+                    const header = newCard.querySelector('.problem-header');
+                    header.classList.add('active');
+                    const content = header.nextElementSibling;
+                    setTimeout(() => { content.style.maxHeight = content.scrollHeight + "px"; }, 10);
+                }
+                if (button.matches('.modal-overlay .close-btn, .modal-overlay .secondary-btn')) button.closest('.modal-overlay').classList.remove('show');
+            });
+
+            document.getElementById('problems-container').addEventListener('click', e => {
+                const target = e.target;
+                const header = target.closest('.problem-header');
+                const button = target.closest('button');
+                if (header && !button) { 
+                    header.classList.toggle('active');
+                    const content = header.nextElementSibling;
+                    content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+                    return;
+                }
+                
+                if (button) {
+                    if (button.matches('.add-testcase-btn')) {
+                        const container = button.previousElementSibling;
+                        container.appendChild(createTestCaseForm());
+                        const problemBody = button.closest('.problem-body');
+                        problemBody.style.maxHeight = problemBody.scrollHeight + "px";
+                    }
+                    if (button.matches('.remove-item-btn')) {
+                        const problemBody = button.closest('.problem-body');
+                        button.parentElement.remove();
+                        problemBody.style.maxHeight = problemBody.scrollHeight + "px";
+                    }
+                    if (button.matches('.delete-problem-btn')) {
+                        if (confirm('Are you sure?')) {
+                            const problemCard = button.closest('.problem-card');
+                            const problemId = problemCard.dataset.id;
+                            if (problemId && !problemId.startsWith('new_')) db.collection('codeProblems').doc(problemId).delete();
+                            else problemCard.remove();
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('assignments-tbody').addEventListener('change', async e => {
+                if (e.target.matches('.lock-toggle')) await db.collection('codeAssignments').doc(e.target.dataset.id).update({ isLocked: !e.target.checked });
+            });
+
+            document.getElementById('save-assignment-btn').addEventListener('click', async () => {
+                const id = document.getElementById('assignment-id').value;
+                const date = document.getElementById('assignment-deadline').value;
+                let deadline = null;
+                if (date) {
+                    const d = new Date(date);
+                    d.setHours(23, 59, 59, 999);
+                    deadline = firebase.firestore.Timestamp.fromDate(d);
+                }
+
+                const data = { 
+                    name: document.getElementById('assignment-name').value.trim(), 
+                    subjectId: currentSubject.id,
+                    duration: parseInt(document.getElementById('assignment-duration').value, 10) * 60,
+                    isLocked: document.getElementById('assignment-locked').checked,
+                    deadline: deadline
+                };
+
+                if (!data.name || isNaN(data.duration) || data.duration <= 0) { alert('Name and a valid positive Duration are required'); return; }
+                
+                if (id) {
+                    await db.collection('codeAssignments').doc(id).update(data);
+                } else {
+                    data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('codeAssignments').add(data);
+                }
+                document.getElementById('assignment-modal').classList.remove('show');
+            });
+            
+            document.getElementById('problems-container').addEventListener('submit', async e => {
+                e.preventDefault();
+                const form = e.target;
+                const problemCard = form.closest('.problem-card');
+                const problemId = problemCard.dataset.id;
+                
+                const testCases = [];
+                let validJson = true;
+                form.querySelectorAll('.testcases-container .testcase-card').forEach(card => {
+                    if (!validJson) return;
+                    try {
+                        testCases.push({
+                            input: JSON.parse(card.querySelector('.testcase-input').value),
+                            expected: JSON.parse(card.querySelector('.testcase-expected').value),
+                            hidden: card.querySelector('.testcase-hidden').checked
+                        });
+                    } catch (err) { validJson = false; alert(`Invalid JSON in a test case. Please check your inputs.\nError: ${err.message}`); }
+                });
+                if (!validJson) return;
+
+                const data = {
+                    title: form.querySelector('.problem-title-input').value.trim(),
+                    points: parseInt(form.querySelector('.problem-points-input').value, 10),
+                    statement: form.querySelector('.problem-statement-input').value,
+                    functionName: form.querySelector('.problem-function-name-input').value.trim(),
+                    starterCode: form.querySelector('.problem-starter-code-input').value,
+                    assignmentId: currentAssignment.id,
+                    testCases
+                };
+
+                if (!data.title || isNaN(data.points) || !data.functionName) { alert('Title, Points, and Function Name are required.'); return; }
+
+                try {
+                    if (problemId && !problemId.startsWith('new_')) {
+                        await db.collection('codeProblems').doc(problemId).update(data);
+                    } else {
+                        const newDocRef = await db.collection('codeProblems').add(data);
+                        problemCard.dataset.id = newDocRef.id;
+                    }
+                    alert('Problem saved!');
+                    const header = problemCard.querySelector('.problem-header');
+                    header.classList.remove('active');
+                    header.nextElementSibling.style.maxHeight = null;
+                } catch (err) { alert(`Error saving problem: ${err.message}`); }
+            });
+
+            document.getElementById('upload-problems-btn').addEventListener('click', () => document.getElementById('problems-file-input').click());
+            document.getElementById('problems-file-input').addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const content = event.target.result;
+                        const problems = eval(`(${content})`); 
+                        if (!Array.isArray(problems)) throw new Error('File must contain an array of problem objects.');
+                        
+                        const batch = db.batch();
+                        problems.forEach(problem => {
+                            const newProblemRef = db.collection('codeProblems').doc();
+                            batch.set(newProblemRef, { ...problem, assignmentId: currentAssignment.id });
+                        });
+                        await batch.commit();
+                        alert(`${problems.length} problems uploaded successfully!`);
+                    } catch (err) { alert(`Error parsing file: ${err.message}`); }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+        });
+    </script>
+</body>
+</html>
