@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Exam Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --body-bg: #F9FAFB;
+            --widget-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --brand-green: #10B981;
+            --hover-bg: #F3F4F6;
+            --gold: #F59E0B;
+            --silver: #9CA3AF;
+            --bronze: #A16207;
+            --danger-color: #EF4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --card-height-mobile: 170px;
+            --card-height-desktop: 150px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; }
+        .main-header { padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .content-body { padding: 2rem 2.5rem 3rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 3rem; } .logo-image { height: 40px; }
+        .main-nav { flex-grow: 1; } .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); } .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; } .main-nav a.active i { color: var(--brand-green); }
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { list-style: none; padding-top: 0.5rem; } .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); } .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); } .popup-list a.logout { color: var(--danger-color); }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .rank-summary-card { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+        .rank-item { text-align: center; padding: 1.5rem 1rem; }
+        .rank-item:first-child { border-right: 1px solid var(--border-color); }
+        .rank-item p { color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .rank-value { font-size: 2.25rem; font-weight: 700; color: var(--text-primary); position: relative; display: inline-block; }
+        .rank-value.rank-value--shining { color: var(--gold); }
+        .rank-value.rank-value--shining::after { content: attr(data-text); position: absolute; top: 0; left: 0; color: transparent; background-image: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.7) 50%, transparent 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; animation: shine 3s linear infinite; }
+        .rank-value.silver { color: var(--silver); }
+        .rank-value.bronze { color: var(--bronze); }
+        @keyframes shine { to { background-position: -200% center; } }
+        .widget { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 24px 12px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .widget-header h2 { font-size: 1.125rem; font-weight: 600; }
+        .leaderboard-tabs { display: flex; gap: 0.5rem; background-color: var(--hover-bg); padding: 0.25rem; border-radius: 99px; margin-bottom: 2rem; align-self: center; }
+        .tab-btn { padding: 0.6rem 1.25rem; border: none; background-color: transparent; border-radius: 99px; font-weight: 600; cursor: pointer; color: var(--text-secondary); font-size: 0.9rem; transition: all 0.3s ease; }
+        .tab-btn.active { background-color: var(--widget-bg); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+        .tab-content { display: none; width: 100%; } .tab-content.active { display: block; }
+        .podium-stacked-card { border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem; overflow: hidden; box-shadow: var(--shadow-sm); }
+        .podium-stacked-item { display: flex; align-items: center; padding: 0.75rem 1rem; gap: 1rem; position: relative; }
+        .podium-stacked-item:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        .podium-rank-badge { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; border: 2px solid var(--widget-bg); }
+        .podium-rank-badge i { font-size: 1.1rem; }
+        .podium-stacked-item.rank-1 .podium-rank-badge { background-color: var(--gold); color: #422006; }
+        .podium-stacked-item.rank-2 .podium-rank-badge { background-color: var(--silver); }
+        .podium-stacked-item.rank-3 .podium-rank-badge { background-color: var(--bronze); }
+        .podium-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .podium-info { flex-grow: 1; } .podium-name { font-weight: 600; } .podium-score { font-weight: 700; color: var(--brand-green); }
+        .leaderboard-list { list-style: none; }
+        .leaderboard-list li { display: flex; align-items: center; padding: 0.75rem 0; border-radius: 8px; transition: background-color 0.2s ease; }
+        .leaderboard-list li:hover { background-color: var(--hover-bg); }
+        .leaderboard-list li:not(:last-child) { margin-bottom: 0.5rem; }
+        .leaderboard-list .rank { font-size: 1rem; font-weight: 600; color: var(--text-secondary); width: 40px; text-align: center; }
+        .leaderboard-list img { width: 40px; height: 40px; border-radius: 50%; margin: 0 12px 0 0; }
+        .leaderboard-list .info { flex-grow: 1; } .leaderboard-list .name { font-weight: 600; }
+        .leaderboard-list .affiliation { color: var(--text-secondary); font-size: 0.85rem; }
+        .leaderboard-list .score { font-weight: 700; color: var(--brand-green); }
+        .leaderboard-list li.current-user { background-color: #ECFDF5; border: 1px solid #A7F3D0; }
+        .score-history-list { list-style: none; }
+        .score-history-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
+        .score-history-item:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        .score-history-info p { font-weight: 600; margin-bottom: 0.25rem; }
+        .score-history-info span { color: var(--text-secondary); font-size: 0.8rem; }
+        .score-history-points { font-weight: 700; font-size: 1rem; }
+        .menu-toggle, .sidebar-close-btn { display: none; }
+        .winner-banner { position: relative; width: 100%; height: var(--card-height-mobile); box-shadow: var(--shadow-md); border-radius: 25px; margin-bottom: 2rem; }
+        .winner-banner-content { position: relative; background: #ffdd87; width: 100%; height: 100%; border-radius: 25px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
+        .winner-banner-content::before { content: ""; position: absolute; top: 0; left: -150%; width: 70%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); transform: skewX(-30deg); animation: winner-shine 5s infinite linear; }
+        @keyframes winner-shine { 0% { left: -150%; } 40% { left: 150%; } 100% { left: 150%; } }
+        .winner-card-main { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+        .winner-ranking-container { position: relative; }
+        .winner-ranking-container::after { content: ''; position: absolute; bottom: -15px; left: 0; width: 100px; height: 5px; border-radius: 5px; background-image: linear-gradient(to right, #ffe8a0, #f7b733, #ffe8a0); }
+        .winner-ranking-number { color: #d1a13a; font-weight: 700; font-size: 60px; line-height: 1; margin: 0; }
+        .winner-ranking-word { font-size: 30px; color: #424c50; }
+        .winner-score-container { text-align: right; }
+        .winner-score-label { color: #8c6d22; letter-spacing: 3px; font-weight: 600; font-size: 12px; margin: 0 0 2px 0; }
+        .winner-score-num { font-size: 36px; font-weight: 700; color: #ea9518; margin: 0; line-height: 1; }
+        .winner-card-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .winner-userInfo { display: flex; align-items: center; gap: 12px; }
+        .winner-user-profile-image { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .winner-userText { display: flex; flex-direction: column; }
+        .winner-userName { font-weight: 600; color: #555c5f; font-size: 18px; margin: 0; line-height: 1.1; }
+        .winner-collegeName { font-weight: 400; color: #7b8386; font-size: 13px; margin: 3px 0 0 0; line-height: 1.1; }
+        .winner-medal-container { display: flex; }
+        .winner-medals { width: 55px; height: 55px; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
+        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
+        .skeleton-line { height: 14px; border-radius: 4px; }
+        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        @media (min-width: 992px) {
+            .winner-banner { height: var(--card-height-desktop); }
+            .winner-banner-content { flex-direction: row; align-items: center; padding: 0 40px; gap: 40px; }
+            .winner-card-main, .winner-card-footer { display: contents; }
+            .winner-ranking-container { order: 1; }
+            .winner-userInfo { order: 2; }
+            .winner-score-container { order: 3; margin-left: auto; }
+            .winner-medal-container { order: 4; }
+            .winner-ranking-container::after { display: none; }
+            .winner-ranking-number { font-size: 70px; }
+            .winner-ranking-word { font-size: 35px; }
+            .winner-user-profile-image { width: 55px; height: 55px; }
+            .winner-userName { font-size: 22px; }
+            .winner-collegeName { font-size: 15px; }
+            .winner-score-label { font-size: 14px; }
+            .winner-score-num { font-size: 48px; }
+            .winner-medals { width: 70px; height: 70px; }
+        }
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { grid-template-columns: 1fr; padding: 16px; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; background-color: transparent }
+            .menu-toggle:hover { background-color: var(--hover-bg) }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .overlay.active { opacity: 1; pointer-events: auto; }
+        }
+         @media (max-width: 640px) {
+            .rank-summary-card { grid-template-columns: 1fr 1fr; gap: 0; }
+            .rank-item { padding: 1rem; }
+            .rank-item p { font-size: 0.8rem; margin-bottom: 0.25rem; }
+            .rank-value { font-size: 1.875rem; }
+            .rank-item:first-child { border-right: 1px solid var(--border-color); }
+            .winner-banner { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header"><img src="https://ihtnas.com/assets/ihtnas-nav.png" alt="Ihtnas Logo" class="logo-image"></div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="dashboard.html"><i class='bx bx-home-alt'></i> Dashboard</a></li>
+                    <li><a href="course.html"><i class='bx bx-book-open'></i> Course & Content</a></li>
+                    <li><a href="leaderboard.html" class="active"><i class='bx bx-bar-chart-alt-2'></i> Leaderboard</a></li>
+                    <li><a href="programs.html"><i class='bx bx-briefcase-alt-2'></i> Explore Programs</a></li>
+                    <li><a href="community.html"><i class='bx bx-group'></i> Community</a></li>
+                    <li><a href="help.html"><i class='bx bx-help-circle'></i> Help & Support</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section" id="profile-section">
+                <div class="profile-skeleton" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
+                    <div class="skeleton skeleton-avatar"></div>
+                    <div style="flex-grow: 1; min-width: 0;">
+                        <div class="skeleton skeleton-line" style="width: 70%; height: 14px; margin-bottom: 0.5rem;"></div>
+                        <div class="skeleton skeleton-line" style="width: 90%; height: 12px;"></div>
+                    </div>
+                </div>
+                <div class="profile-content-wrapper" style="display: none;">
+                    <img src="" alt="Profile Picture" class="profile-avatar">
+                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+                </div>
+            </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <img src="" alt="Profile Picture" class="profile-avatar">
+                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                </div>
+                <ul class="popup-list">
+                    <li><a href="profile.html"><i class='bx bx-user'></i> Profile</a></li>
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Open menu"><i class='bx bx-menu'></i></button>
+                <h1>Leaderboard</h1>
+            </header>
+            <div class="content-body" id="skeleton-loader">
+                <div class="leaderboard-main">
+                    <div class="rank-summary-card">
+                        <div class="rank-item">
+                            <p>Your College Rank</p>
+                            <div class="rank-value"><div class="skeleton" style="width: 80px; height: 36px; margin: 0 auto; border-radius: 8px;"></div></div>
+                        </div>
+                        <div class="rank-item">
+                            <p>Your Overall Rank</p>
+                            <div class="rank-value"><div class="skeleton" style="width: 80px; height: 36px; margin: 0 auto; border-radius: 8px;"></div></div>
+                        </div>
+                    </div>
+                    <div class="widget">
+                        <div class="leaderboard-tabs skeleton" style="width: 240px; height: 42px; padding: 0;"></div>
+                        <div class="winner-banner skeleton" style="height: var(--card-height-desktop);"></div>
+                        <ul class="leaderboard-list">
+                            <li style="gap: 1rem;"><div class="skeleton" style="width: 24px; height: 16px; border-radius: 4px;"></div><div class="skeleton skeleton-avatar" style="margin: 0;"></div><div class="info" style="flex-grow: 1;"><div class="skeleton skeleton-line" style="width: 60%; margin-bottom: 4px;"></div><div class="skeleton skeleton-line" style="width: 40%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 60px; height: 16px;"></div></li>
+                            <li style="gap: 1rem;"><div class="skeleton" style="width: 24px; height: 16px; border-radius: 4px;"></div><div class="skeleton skeleton-avatar" style="margin: 0;"></div><div class="info" style="flex-grow: 1;"><div class="skeleton skeleton-line" style="width: 55%; margin-bottom: 4px;"></div><div class="skeleton skeleton-line" style="width: 35%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 60px; height: 16px;"></div></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="leaderboard-side">
+                     <div class="widget">
+                        <div class="widget-header"><div class="skeleton skeleton-line" style="width: 150px; height: 20px;"></div></div>
+                        <ul class="score-history-list">
+                            <li class="score-history-item"><div class="score-history-info"><div class="skeleton skeleton-line" style="width: 80%; margin-bottom: 6px;"></div><div class="skeleton skeleton-line" style="width: 60%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 70px; height: 16px;"></div></li>
+                            <li class="score-history-item"><div class="score-history-info"><div class="skeleton skeleton-line" style="width: 75%; margin-bottom: 6px;"></div><div class="skeleton skeleton-line" style="width: 50%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 70px; height: 16px;"></div></li>
+                            <li class="score-history-item"><div class="score-history-info"><div class="skeleton skeleton-line" style="width: 85%; margin-bottom: 6px;"></div><div class="skeleton skeleton-line" style="width: 55%; height: 12px;"></div></div><div class="skeleton skeleton-line" style="width: 70px; height: 16px;"></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body" id="real-content" style="display: none;">
+                <div class="leaderboard-main">
+                    <div class="rank-summary-card">
+                        <div class="rank-item">
+                            <p>Your College Rank</p>
+                            <div class="rank-value" id="college-rank-value">-</div>
+                        </div>
+                        <div class="rank-item">
+                            <p>Your Overall Rank</p>
+                            <div class="rank-value" id="overall-rank-value">-</div>
+                        </div>
+                    </div>
+                    <div class="widget">
+                        <div class="leaderboard-tabs">
+                            <button id="collegeTab" class="tab-btn active" data-target="#college-content">My College</button>
+                            <button id="overallTab" class="tab-btn" data-target="#overall-content">Overall</button>
+                        </div>
+                        <div id="college-content" class="tab-content active"></div>
+                        <div id="overall-content" class="tab-content"></div>
+                    </div>
+                </div>
+                <div class="leaderboard-side">
+                     <div class="widget">
+                        <div class="widget-header"><h2>My Score History</h2></div>
+                        <ul class="score-history-list" id="score-history-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+                authDomain: "exam-2e799.firebaseapp.com",
+                projectId: "exam-2e799",
+                storageBucket: "exam-2e799.firebasestorage.app",
+                messagingSenderId: "472506328501",
+                appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+                measurementId: "G-NX21HT3JKT"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const DEFAULT_AVATAR = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWxmiQqKsGu4P4FulnB-hDH6_RyTFPzHo67Q&s';
+
+            let currentUserProfile = null;
+            let currentUserId = null;
+
+            const setupEventListeners = () => {
+                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+                const profileSection = document.getElementById('profile-section');
+                const profilePopup = document.getElementById('profile-popup');
+                profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
+                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menu-toggle');
+                const closeBtn = document.getElementById('sidebar-close-btn');
+                const overlay = document.getElementById('overlay');
+                const toggleMenu = () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); };
+                menuToggle.addEventListener('click', toggleMenu);
+                closeBtn.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+                const tabs = document.querySelectorAll('.tab-btn');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        document.querySelector(e.currentTarget.dataset.target).classList.add('active');
+                    });
+                });
+            };
+
+            const updateProfileUI = (userProfile) => {
+                const logoUrl = localStorage.getItem('dashboardLogoUrl');
+                if (logoUrl) { document.querySelector('.logo-image').src = logoUrl; }
+                const profileToUse = userProfile || JSON.parse(localStorage.getItem('dashboardUserProfile'));
+                if (profileToUse) {
+                    document.querySelectorAll('.profile-avatar').forEach(el => {
+                        el.src = profileToUse.photoURL || DEFAULT_AVATAR;
+                        el.onerror = () => { el.src = DEFAULT_AVATAR; };
+                    });
+                    document.querySelectorAll('.profile-name').forEach(el => el.textContent = profileToUse.displayName);
+                    document.querySelectorAll('.profile-email').forEach(el => el.textContent = profileToUse.email);
+                    document.querySelector('.profile-skeleton').style.display = 'none';
+                    document.querySelector('.profile-content-wrapper').style.display = 'flex';
+                }
+            };
+
+            setupEventListeners();
+            updateProfileUI();
+            
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (!userDoc.exists) { window.location.href = 'index.html'; return; }
+                    currentUserProfile = userDoc.data();
+                    updateProfileUI(currentUserProfile);
+                    await loadLeaderboardData();
+                } else { window.location.href = 'index.html'; }
+            });
+
+            const loadLeaderboardData = async () => {
+                try {
+                    const [overallDoc, collegeDoc] = await Promise.all([
+                        db.collection('leaderboardData').doc('overall').get(),
+                        db.collection('leaderboardData').doc(currentUserProfile.college).get()
+                    ]);
+
+                    const overallList = overallDoc.exists ? overallDoc.data().leaderboard : [];
+                    const collegeList = collegeDoc.exists ? collegeDoc.data().leaderboard : [];
+                    
+                    renderLeaderboard('overall-content', overallList, true);
+                    renderLeaderboard('college-content', collegeList, false);
+                    renderRankSummary(overallList, collegeList);
+                    renderScoreHistory();
+                } catch(error) {
+                    console.error("Error loading leaderboard data: ", error);
+                } finally {
+                    document.getElementById('skeleton-loader').style.display = 'none';
+                    document.getElementById('real-content').style.display = 'grid';
+                }
+            };
+            
+            const renderLeaderboard = (containerId, userList, isOverall) => {
+                const container = document.getElementById(containerId);
+                let topPerformersHtml = '';
+                let startIndexForList = 0;
+
+                if (isOverall && userList.length > 0) {
+                    const winner = userList[0];
+                    const winnerPhoto = winner.photoURL || DEFAULT_AVATAR;
+                    topPerformersHtml = `
+                    <div class="winner-banner">
+                        <div class="winner-banner-content">
+                            <div class="winner-card-main">
+                                <div class="winner-ranking-container"><p class="winner-ranking-number">1<span class="winner-ranking-word">st</span></p></div>
+                                <div class="winner-score-container"><p class="winner-score-label">SCORE</p><p class="winner-score-num">${winner.totalScore}</p></div>
+                            </div>
+                            <div class="winner-card-footer">
+                                <div class="winner-userInfo"><img src="${winnerPhoto}" alt="Profile of ${winner.displayName}" class="winner-user-profile-image" onerror="this.src='${DEFAULT_AVATAR}'"><div class="winner-userText"><p class="winner-userName">${winner.displayName}</p><p class="winner-collegeName">${winner.college}</p></div></div>
+                                <div class="winner-medal-container"><svg class="winner-medals" viewBox="0 0 1024 1024"><path d="M896 42.666667h-128l-170.666667 213.333333h128z" fill="#FF4C4C"></path><path d="M768 42.666667h-128l-170.666667 213.333333h128z" fill="#3B8CFF"></path><path d="M640 42.666667h-128L341.333333 256h128z" fill="#F1F1F1"></path><path d="M128 42.666667h128l170.666667 213.333333H298.666667z" fill="#FF4C4C"></path><path d="M256 42.666667h128l170.666667 213.333333h-128z" fill="#3B8CFF"></path><path d="M384 42.666667h128l170.666667 213.333333h-128z" fill="#FBFBFB"></path><path d="M298.666667 256h426.666666v213.333333H298.666667z" fill="#E3A815"></path><path d="M512 661.333333m-320 0a320 320 0 1 0 640 0 320 320 0 1 0-640 0Z" fill="#FDDC3A"></path><path d="M512 661.333333m-256 0a256 256 0 1 0 512 0 256 256 0 1 0-512 0Z" fill="#E3A815"></path><path d="M512 661.333333m-213.333333 0a213.333333 213.333333 0 1 0 426.666666 0 213.333333 213.333333 0 1 0-426.666666 0Z" fill="#F5CF41"></path><path d="M277.333333 256h469.333334a21.333333 21.333333 0 0 1 0 42.666667h-469.333334a21.333333 21.333333 0 0 1 0-42.666667z" fill="#D19A0E"></path><path d="M277.333333 264.533333a12.8 12.8 0 1 0 0 25.6h469.333334a12.8 12.8 0 1 0 0-25.6h-469.333334z m0-17.066666h469.333334a29.866667 29.866667 0 1 1 0 59.733333h-469.333334a29.866667 29.866667 0 1 1 0-59.733333z" fill="#F9D525"></path><path d="M512 746.666667l-100.309333 52.736 19.157333-111.701334-81.152-79.104 112.128-16.298666L512 490.666667l50.176 101.632 112.128 16.298666-81.152 79.104 19.157333 111.701334z" fill="#FFF2A0"></path></svg></div>
+                            </div>
+                        </div>
+                    </div>`;
+                    startIndexForList = 1;
+                } else if (!isOverall && userList.length > 0) {
+                    topPerformersHtml = '<div class="podium-stacked-card">';
+                    userList.slice(0, 3).forEach((user, index) => {
+                        const rank = index + 1;
+                        const userPhoto = user.photoURL || DEFAULT_AVATAR;
+                        let rankIcon = rank;
+                        if(rank === 1) rankIcon = `<i class='bx bxs-trophy'></i>`;
+                        else if(rank === 2 || rank === 3) rankIcon = `<i class='bx bxs-medal'></i>`;
+                        topPerformersHtml += `<div class="podium-stacked-item rank-${rank}"><div class="podium-rank-badge">${rankIcon}</div><img src="${userPhoto}" alt="Avatar" class="podium-avatar" onerror="this.src='${DEFAULT_AVATAR}'"><div class="podium-info"><p class="podium-name">${user.displayName}</p></div><p class="podium-score">${user.totalScore} XP</p></div>`;
+                    });
+                    topPerformersHtml += '</div>';
+                    startIndexForList = userList.length >= 3 ? 3 : userList.length;
+                }
+                
+                let listHtml = '<ul class="leaderboard-list">';
+                let currentUserRendered = userList.slice(0, startIndexForList).some(u => u.uid === currentUserId);
+                
+                userList.slice(startIndexForList).forEach((user, index) => {
+                    const rank = startIndexForList + index + 1;
+                    if(user.uid === currentUserId) currentUserRendered = true;
+                    const userPhoto = user.photoURL || DEFAULT_AVATAR;
+                    listHtml += `<li class="${user.uid === currentUserId ? 'current-user' : ''}"><span class="rank">${rank}</span><img src="${userPhoto}" alt="Avatar" onerror="this.src='${DEFAULT_AVATAR}'"><div class="info"><p class="name">${user.displayName}</p><p class="affiliation">${isOverall ? user.college : (currentUserProfile.branch || 'N/A')}</p></div><p class="score" style="padding-right: 8px;">${user.totalScore} XP</p></li>`;
+                });
+
+                if (!currentUserRendered) {
+                     const currentUserData = userList.find(u => u.uid === currentUserId);
+                     if(currentUserData){
+                         const rank = userList.findIndex(u => u.uid === currentUserId) + 1;
+                         const userPhoto = currentUserData.photoURL || DEFAULT_AVATAR;
+                         listHtml += `<hr class="user-separator" style="margin: 0.5rem 0;"/><li class="current-user"><span class="rank">${rank}</span><img src="${userPhoto}" alt="Avatar" onerror="this.src='${DEFAULT_AVATAR}'"><div class="info"><p class="name">${currentUserData.displayName}</p><p class="affiliation">${isOverall ? currentUserData.college : (currentUserProfile.branch || 'N/A')}</p></div><p class="score">${currentUserData.totalScore} XP</p></li>`;
+                     }
+                }
+                listHtml += '</ul>';
+                container.innerHTML = topPerformersHtml + listHtml;
+            };
+
+            const renderRankSummary = (overallList, collegeList) => {
+                const overallRank = overallList.findIndex(u => u.uid === currentUserId) + 1;
+                const collegeRank = collegeList.findIndex(u => u.uid === currentUserId) + 1;
+                const overallRankEl = document.getElementById('overall-rank-value');
+                const collegeRankEl = document.getElementById('college-rank-value');
+                const hasOverallScore = overallRank > 0;
+                const hasCollegeScore = collegeRank > 0;
+                const overallRankText = hasOverallScore ? `#${overallRank}` : 'N/A';
+                const collegeRankText = hasCollegeScore ? `#${collegeRank}` : 'N/A';
+
+                overallRankEl.textContent = overallRankText;
+                overallRankEl.dataset.text = overallRankText;
+                collegeRankEl.textContent = collegeRankText;
+                collegeRankEl.dataset.text = collegeRankText;
+                
+                overallRankEl.className = 'rank-value';
+                if (hasOverallScore) {
+                    if (overallRank === 1) overallRankEl.classList.add('rank-value--shining');
+                    else if (overallRank === 2) overallRankEl.classList.add('silver');
+                    else if (overallRank === 3) overallRankEl.classList.add('bronze');
+                }
+                collegeRankEl.className = 'rank-value';
+                if (hasCollegeScore) {
+                    if (collegeRank === 1) collegeRankEl.classList.add('rank-value--shining');
+                    else if (collegeRank === 2) collegeRankEl.classList.add('silver');
+                    else if (collegeRank === 3) collegeRankEl.classList.add('bronze');
+                }
+            };
+            
+            const renderScoreHistory = async () => {
+                const list = document.getElementById('score-history-list');
+                const [scoresSnap, codeScoresSnap, attendanceDoc, lessonsSnap, coursesSnap] = await Promise.all([
+                    db.collection('scores').where('userId', '==', currentUserId).orderBy('submittedAt', 'desc').get(),
+                    db.collection('codeAssignmentScores').where('userId', '==', currentUserId).orderBy('completedAt', 'desc').get(),
+                    db.collection('users').doc(currentUserId).collection('scores').doc('attendance').get(),
+                    db.collection('lessons').get(),
+                    db.collection('courses').get()
+                ]);
+
+                const lessonsMap = new Map(lessonsSnap.docs.map(doc => [doc.id, doc.data()]));
+                const coursesMap = new Map(coursesSnap.docs.map(doc => [doc.id, doc.data()]));
+
+                let historyItems = [];
+                scoresSnap.forEach(doc => {
+                    const data = doc.data();
+                    let name = data.examName;
+                    let date = data.submittedAt.toDate();
+                    let scoreText = `${data.pointsReceived} / ${data.totalPoints} XP`;
+
+                    if (data.examType === 'quiz') {
+                        const lesson = lessonsMap.get(data.examId);
+                        if(lesson) {
+                           const course = coursesMap.get(lesson.courseId);
+                           if(course && course.chapters && course.chapters.length > lesson.chapterIndex) {
+                               name = `${lesson.title} (${course.chapters[lesson.chapterIndex]})`;
+                           }
+                        }
+                    }
+                     historyItems.push({ name, date, score: scoreText });
+                });
+                
+                codeScoresSnap.forEach(doc => {
+                    const data = doc.data();
+                    historyItems.push({
+                        name: data.assignmentName,
+                        date: data.completedAt.toDate(),
+                        score: `${data.totalScoreObtained} / ${data.totalScorePossible} XP`
+                    });
+                });
+
+                if (attendanceDoc.exists) {
+                    const attendanceData = attendanceDoc.data();
+                    Object.keys(attendanceData).forEach(key => {
+                        if (!isNaN(Date.parse(key))) {
+                            historyItems.push({
+                                name: `Class Attendance`,
+                                date: new Date(key),
+                                score: `+${attendanceData[key]} XP`,
+                                description: `For attending class on ${new Date(key).toLocaleDateString()}`
+                            });
+                        }
+                    });
+                }
+
+                historyItems.sort((a,b) => b.date - a.date);
+
+                if(historyItems.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color: var(--text-secondary); padding: 2rem 0;">No assessments completed yet.</p>';
+                    return;
+                }
+
+                list.innerHTML = historyItems.map(item => `
+                    <li class="score-history-item">
+                        <div class="score-history-info">
+                            <p>${item.name}</p>
+                            <span>${item.description || item.date.toLocaleString()}</span>
+                        </div>
+                        <strong class="score-history-points">${item.score}</strong>
+                    </li>
+                `).join('');
+            };
+        });
+    </script>
+</body>
+</html>
