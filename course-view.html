@@ -105,9 +105,9 @@
         <aside class="sidebar" id="sidebar">
             <button class="close-menu-btn" id="close-menu-btn" aria-label="Close menu"><span class="icon"></span></button>
             <div class="sidebar-header">
-                <p class="course-category" id="sidebar-category"></p>
+                <p class="course-category" id="sidebar-category">Course</p>
                 <h1 class="course-title" id="sidebar-title"></h1>
-                <a href="#" id="back-to-subject-link" style="color: var(--color-sidebar-text-muted); font-size: 0.9rem; text-decoration: none; margin-top: 8px;">&larr; Back to Course</a>
+                <a href="#" id="back-to-subject-link" style="color: var(--color-sidebar-text-muted); font-size: 0.9rem; text-decoration: none; margin-top: 8px;">&larr; Back to Course Page</a>
             </div>
             <div class="progress-container">
                 <span id="progress-text">0% Completed</span>
@@ -159,13 +159,13 @@
             const db = firebase.firestore();
 
             let courseData = null;
-            let allItems = [];
             let progressData = {};
+            let allItems = [];
             let currentItemId = null;
             let currentUser = null;
-            let userQuizAnswers = {};
             let courseId = null;
-            
+            let userQuizAnswers = {};
+
             const ICONS = {
                 MENU: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>`,
                 CLOSE: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
@@ -186,43 +186,60 @@
             };
 
             auth.onAuthStateChanged(user => {
-                if (user) { currentUser = user; initializeApp(); } 
-                else { window.location.href = 'index.html'; }
+                if (user) {
+                    currentUser = user;
+                    initializeApp();
+                } else {
+                    window.location.href = 'index.html';
+                }
             });
 
             const initializeApp = async () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 courseId = urlParams.get('id');
-                if (!courseId) { alert('Course ID is missing.'); window.location.href = 'dashboard.html'; return; }
-
-                const [courseDoc, progressDoc] = await Promise.all([
-                    db.collection('courses').doc(courseId).get(),
-                    db.collection('users').doc(currentUser.uid).collection('progressSummary').doc(courseId).get()
-                ]);
-
-                if (!courseDoc.exists) { alert('Course not found.'); window.location.href = 'dashboard.html'; return; }
-                
-                courseData = courseDoc.data();
-                dom.sidebarTitle.textContent = courseData.name;
-                dom.backToSubjectLink.href = courseData.page || 'course.html';
-                allItems = courseData.curriculum.flatMap(chapter => chapter.items.map(item => ({...item, chapterTitle: chapter.chapterTitle })));
-
-                if (progressDoc.exists) {
-                    progressData = progressDoc.data().completedLessons || {};
+                if (!courseId) {
+                    alert('Course ID is missing.');
+                    window.location.href = 'dashboard.html';
+                    return;
                 }
 
-                const firstUncompleted = allItems.find(item => !progressData[item.id]);
-                currentItemId = firstUncompleted ? firstUncompleted.id : (allItems.length > 0 ? allItems[allItems.length - 1].id : null);
+                try {
+                    const [courseDoc, progressDoc] = await Promise.all([
+                        db.collection('courses').doc(courseId).get(),
+                        db.collection('users').doc(currentUser.uid).collection('progressSummary').doc(courseId).get()
+                    ]);
 
-                if (currentItemId) {
-                    renderAll();
-                } else {
-                    dom.courseContainer.innerHTML = '<h1>This course has no content yet.</h1>';
+                    if (!courseDoc.exists) {
+                        alert('Course not found.');
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                    
+                    courseData = courseDoc.data();
+                    progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
+                    
+                    dom.sidebarTitle.textContent = courseData.name;
+                    dom.backToSubjectLink.href = courseData.page;
+
+                    allItems = (courseData.curriculum || []).flatMap(chapter => chapter.items.map((item, index) => ({...item, chapterTitle: chapter.chapterTitle, order: index })));
+                    
+                    const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
+                    currentItemId = firstUncompletedItem ? firstUncompletedItem.id : (allItems.length > 0 ? allItems[allItems.length - 1].id : null);
+                    
+                    if (currentItemId) {
+                        navigateToItem(currentItemId);
+                    } else {
+                        dom.courseContainer.innerHTML = '<h1>This course has no content yet.</h1>';
+                    }
+
+                } catch (error) {
+                    console.error("Error initializing app: ", error);
+                    dom.courseContainer.innerHTML = '<h1>Error loading course. Please try again.</h1>';
+                } finally {
+                    injectIcons();
+                    dom.courseContainer.style.display = 'flex';
+                    dom.loadingOverlay.style.display = 'none';
                 }
-                
-                injectIcons();
-                dom.courseContainer.style.display = 'flex';
-                dom.loadingOverlay.style.display = 'none';
             };
 
             const renderAll = () => {
@@ -231,34 +248,57 @@
                 updateProgress();
             };
 
-            const findItemById = (id) => allItems.find(item => item.id === id);
+            const navigateToItem = (itemId) => {
+                currentItemId = itemId;
+                userQuizAnswers = {};
+                renderAll();
+                closeMobileMenu();
+            };
 
             const renderSidebar = () => {
                 dom.courseNav.innerHTML = '';
                 const firstUncompleted = allItems.find(item => !progressData[item.id]);
-                const currentItem = findItemById(currentItemId);
+                const currentItem = allItems.find(item => item.id === currentItemId);
 
                 (courseData.curriculum || []).forEach((chapter, chapIdx) => {
                     if (chapter.items.length === 0) return;
-
-                    const completedInChapter = chapter.items.filter(item => progressData[item.id]).length;
-                    const isChapterComplete = completedInChapter === chapter.items.length;
-                    const isCollapsed = currentItem ? chapter.chapterTitle !== currentItem.chapterTitle : true;
                     
+                    const itemsCompleted = chapter.items.filter(item => progressData[item.id]).length;
+                    const isChapterComplete = itemsCompleted === chapter.items.length;
+                    const isCollapsed = currentItem ? chapter.chapterTitle !== currentItem.chapterTitle : true;
+
                     const chapterItem = document.createElement('li');
                     chapterItem.className = 'chapter-item';
-                    chapterItem.innerHTML = `<div class="chapter-header ${isChapterComplete ? 'completed' : ''} ${isCollapsed ? 'collapsed' : ''}"><span class="chapter-number">${chapIdx + 1}</span><div class="chapter-title-group"><span class="chapter-title">${chapter.chapterTitle}</span><span class="chapter-progress">${completedInChapter} / ${chapter.items.length} Completed</span></div><div class="chapter-status-icon">${ICONS.CHECK}</div><div class="chapter-toggle-icon">${ICONS.CHEVRON}</div></div><div class="lesson-list-container"><ul class="lesson-list"></ul></div>`;
+                    chapterItem.innerHTML = `
+                        <div class="chapter-header ${isChapterComplete ? 'completed' : ''} ${isCollapsed ? 'collapsed' : ''}">
+                            <span class="chapter-number">${chapIdx + 1}</span>
+                            <div class="chapter-title-group">
+                                <span class="chapter-title">${chapter.chapterTitle}</span>
+                                <span class="chapter-progress">${itemsCompleted} / ${chapter.items.length} Completed</span>
+                            </div>
+                            <div class="chapter-status-icon">${ICONS.CHECK}</div>
+                            <div class="chapter-toggle-icon">${ICONS.CHEVRON}</div>
+                        </div>
+                        <div class="lesson-list-container"><ul class="lesson-list"></ul></div>`;
                     
                     const lessonList = chapterItem.querySelector('.lesson-list');
-                    chapter.items.forEach((item) => {
+                    chapter.items.forEach(item => {
                         const isLocked = !progressData[item.id] && firstUncompleted && item.id !== firstUncompleted.id;
                         const li = document.createElement('li');
                         li.className = `lesson-item ${item.id === currentItemId ? 'active' : ''} ${progressData[item.id] ? 'completed' : ''} ${isLocked ? 'locked' : ''}`;
                         li.dataset.itemId = item.id;
                         const iconClass = item.type === 'quiz' ? 'bxs-help-circle' : 'bxs-file-blank';
                         
-                        li.innerHTML = `<i class='item-type-icon bx ${iconClass}'></i><div class="lesson-details"><span class="lesson-title-nav">${item.title}</span></div><div class="lesson-status-circle">${ICONS.CHECK}</div>`;
-                        if (!isLocked) { li.addEventListener('click', (e) => { e.preventDefault(); navigateToItem(item.id); }); }
+                        li.innerHTML = `
+                            <i class='item-type-icon bx ${iconClass}'></i>
+                            <div class="lesson-details">
+                                <span class="lesson-title-nav">${item.title}</span>
+                            </div>
+                            <div class="lesson-status-circle">${ICONS.CHECK}</div>`;
+                        
+                        if (!isLocked) {
+                            li.addEventListener('click', () => navigateToItem(item.id));
+                        }
                         lessonList.appendChild(li);
                     });
                     
@@ -267,52 +307,39 @@
                 });
             };
             
-            const navigateToItem = (itemId) => {
-                const item = findItemById(itemId);
-                if (item) {
-                    currentItemId = itemId;
-                    userQuizAnswers = {};
-                    renderAll();
-                    closeMobileMenu();
-                }
-            };
-
             const renderContent = async () => {
-                const item = findItemById(currentItemId);
+                const item = allItems.find(i => i.id === currentItemId);
                 if (!item) return;
 
-                const itemFullDataDoc = await db.collection('lessons').doc(item.id).get();
-                if (!itemFullDataDoc.exists) { dom.lessonContent.innerHTML = '<p>Error: Could not load content.</p>'; return; }
-                const itemFullData = itemFullDataDoc.data();
-                
-                const chapterIndex = courseData.curriculum.findIndex(c => c.chapterTitle === item.chapterTitle);
-                const itemIndexInChapter = courseData.curriculum[chapterIndex].items.findIndex(i => i.id === item.id);
+                const itemDoc = await db.collection('lessons').doc(item.id).get();
+                if (!itemDoc.exists) { dom.lessonContent.innerHTML = 'Content not found.'; return; }
 
-                dom.lessonMeta.textContent = `Chapter ${chapterIndex + 1} • Item ${itemIndexInChapter + 1}`;
-                dom.lessonTitle.textContent = item.title;
+                const itemData = itemDoc.data();
+                dom.lessonMeta.textContent = `Chapter: ${item.chapterTitle}`;
+                dom.lessonTitle.textContent = itemData.title;
                 dom.lessonContent.className = 'lesson-body';
 
-                if (item.type === 'quiz') {
+                if (itemData.type === 'quiz') {
                     if (progressData[item.id]) {
                         const scoreSnap = await db.collection('scores').where('userId', '==', currentUser.uid).where('examId', '==', item.id).limit(1).get();
                         if (!scoreSnap.empty) {
                             const scoreData = scoreSnap.docs[0].data();
-                            showQuizResults(scoreData.pointsReceived, scoreData.totalPoints, false);
+                            showQuizResults(scoreData.pointsReceived, scoreData.totalPoints);
                         } else {
-                            renderQuiz(itemFullData);
+                            renderQuiz(itemData.questions);
                         }
                     } else {
-                        renderQuiz(itemFullData);
+                        renderQuiz(itemData.questions);
                     }
                 } else {
-                    dom.lessonContent.innerHTML = itemFullData.content || '';
+                    dom.lessonContent.innerHTML = itemData.content || '';
                 }
                 updateNavButtons();
             };
 
-            const renderQuiz = (quizData) => {
+            const renderQuiz = (questions) => {
                 let quizHtml = '<div class="quiz-container">';
-                (quizData.questions || []).forEach((q, index) => {
+                (questions || []).forEach((q, index) => {
                     quizHtml += `<div class="quiz-question-card" data-question-index="${index}"><h4>${index + 1}. ${q.title}</h4>`;
                     q.options.forEach((opt, optIndex) => {
                         quizHtml += `<label class="quiz-option"><input type="radio" name="q${index}" value="${optIndex}" style="display:none;"><span class="quiz-option-letter">${String.fromCharCode(65 + optIndex)}</span><span>${opt}</span></label>`;
@@ -344,11 +371,12 @@
             const updateNavButtons = () => {
                 const currentIndex = allItems.findIndex(l => l.id === currentItemId);
                 dom.prevBtn.disabled = currentIndex === 0;
+
                 const isLastItem = currentIndex === allItems.length - 1;
                 const isCompleted = progressData[currentItemId];
-                const currentItem = findItemById(currentItemId);
+                const item = allItems.find(i => i.id === currentItemId);
 
-                if (currentItem.type === 'quiz') {
+                if (item.type === 'quiz') {
                     dom.completeBtn.textContent = isCompleted ? 'Next →' : 'Submit Quiz';
                     dom.completeBtn.disabled = isLastItem && isCompleted;
                 } else {
@@ -371,61 +399,28 @@
             };
 
             const handleCompleteAndNext = async () => {
-                if (progressData[currentItemId]) {
-                    const currentIndex = allItems.findIndex(l => l.id === currentItemId);
+                const currentIndex = allItems.findIndex(l => l.id === currentItemId);
+                const item = allItems[currentIndex];
+                const isAlreadyCompleted = progressData[item.id];
+
+                if (isAlreadyCompleted) {
+                    if (currentIndex < allItems.length - 1) navigateToItem(allItems[currentIndex + 1].id);
+                    return;
+                }
+
+                if (item.type === 'quiz') {
+                    await handleSubmitQuiz();
+                } else {
+                    await markAsComplete(item.id);
                     if (currentIndex < allItems.length - 1) {
                         navigateToItem(allItems[currentIndex + 1].id);
+                    } else {
+                        renderAll();
                     }
-                    return;
                 }
-                
-                const item = findItemById(currentItemId);
-                if (item.type === 'quiz') { handleSubmitQuiz(); return; }
-                
-                dom.completeBtn.disabled = true;
-                await updateProgressInFirestore(currentItemId);
-                
-                const currentIndex = allItems.findIndex(l => l.id === currentItemId);
-                if (currentIndex < allItems.length - 1) {
-                    navigateToItem(allItems[currentIndex + 1].id);
-                } else { renderAll(); }
             };
 
-            const handleSubmitQuiz = async () => {
-                const itemFullDataDoc = await db.collection('lessons').doc(currentItemId).get();
-                const itemFullData = itemFullDataDoc.data();
-                
-                if (Object.keys(userQuizAnswers).length !== itemFullData.questions.length) {
-                    alert('Please answer all questions before submitting.');
-                    return;
-                }
-                dom.completeBtn.disabled = true;
-                let score = 0;
-                const totalPoints = itemFullData.questions.reduce((sum, q) => sum + (q.points || 0), 0);
-
-                itemFullData.questions.forEach((q, index) => {
-                    if (userQuizAnswers[index] === q.correctAnswer) {
-                        score += (q.points || 0);
-                    }
-                });
-
-                const scoreData = {
-                    userId: currentUser.uid,
-                    examId: currentItemId, examName: itemFullData.title,
-                    examType: 'quiz', courseId: courseId,
-                    pointsReceived: score, totalPoints: totalPoints,
-                    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                await db.collection('scores').add(scoreData);
-                await updateProgressInFirestore(currentItemId);
-                
-                showQuizResults(score, totalPoints, true);
-                renderSidebar();
-                updateProgress();
-            };
-
-            const updateProgressInFirestore = async (itemId) => {
+            const markAsComplete = async (itemId) => {
                 const progressDocRef = db.collection('users').doc(currentUser.uid).collection('progressSummary').doc(courseId);
                 await db.runTransaction(async (transaction) => {
                     const progressDoc = await transaction.get(progressDocRef);
@@ -436,20 +431,54 @@
                 progressData[itemId] = true;
             };
 
-            const showQuizResults = (score, totalPoints, isNewSubmission) => {
-                dom.lessonContent.innerHTML = `<div class="quiz-results-summary"><h3>${score}/${totalPoints}</h3><p>Your Score</p></div>`;
-                if(isNewSubmission) {
-                    dom.lessonContent.classList.add('quiz-results');
+            const handleSubmitQuiz = async () => {
+                const itemDoc = await db.collection('lessons').doc(currentItemId).get();
+                const itemData = itemDoc.data();
+                const questions = itemData.questions || [];
+
+                if (Object.keys(userQuizAnswers).length !== questions.length) {
+                    alert('Please answer all questions before submitting.');
+                    return;
+                }
+                dom.completeBtn.disabled = true;
+
+                let score = 0;
+                const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
+                questions.forEach((q, index) => {
+                    if (userQuizAnswers[index] === q.correctAnswer) {
+                        score += (q.points || 0);
+                    }
+                });
+
+                const scoreData = {
+                    userId: currentUser.uid, examId: currentItemId, examName: itemData.title,
+                    examType: 'quiz', courseId: courseId, pointsReceived: score, totalPoints: totalPoints,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                try {
+                    await db.collection('scores').add(scoreData);
+                    await markAsComplete(currentItemId);
+                } catch (error) {
+                    console.error("Error saving quiz score:", error);
+                    dom.completeBtn.disabled = false;
+                    return;
                 }
                 
-                updateNavButtons();
+                showQuizResults(score, totalPoints);
+                renderSidebar();
+                updateProgress();
+            };
+
+            const showQuizResults = (score, totalPoints) => {
+                dom.lessonContent.innerHTML = `<div class="quiz-results-summary"><h3>${score}/${totalPoints}</h3><p>Your Score</p></div>`;
+                dom.completeBtn.textContent = 'Next →';
                 const currentIndex = allItems.findIndex(l => l.id === currentItemId);
-                if (currentIndex >= allItems.length - 1) {
-                    dom.completeBtn.textContent = 'Course Complete!';
-                    dom.completeBtn.disabled = true;
+                if (currentIndex < allItems.length - 1) {
+                    dom.completeBtn.disabled = false;
                 } else {
-                     dom.completeBtn.textContent = 'Next →';
-                     dom.completeBtn.disabled = false;
+                    dom.completeBtn.textContent = 'Chapter Complete!';
+                    dom.completeBtn.disabled = true;
                 }
             };
             
