@@ -45,15 +45,10 @@
         .main-area { display: flex; flex-direction: column; overflow-y: auto; }
         .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
         .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .hero-section { background-color: var(--text-primary); color: #FFFFFF; padding: 3rem; }
-        .hero-title { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; }
-        .fc-progress-container { margin-top: 2rem; }
-        .fc-progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
-        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; }
-        .progress { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.5s ease; }
-        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
-        .btn-continue:hover { background-color: #2da967; }
-        .btn-continue .btn-icon { font-size: 1.2rem; }
+        .hero-section { background-color: var(--text-primary); color: #FFFFFF; padding: 4rem 3rem; }
+        .breadcrumbs { font-weight: 500; color: var(--brand-green); margin-bottom: 1rem; }
+        .breadcrumbs a { color: rgba(255, 255, 255, 0.7); text-decoration: none; } .breadcrumbs a:hover { text-decoration: underline; }
+        .hero-title { font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; }
         .content-body { padding: 2rem 3rem 3rem 3rem; display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: flex-start; }
         .main-content { min-width: 0; }
         .content-sidebar { position: sticky; top: calc(2rem + 73px); }
@@ -88,16 +83,27 @@
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .stat-item { text-align: center; } .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
         .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 1999; display: grid; place-items: center; padding: 1rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out; backdrop-filter: blur(4px); }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--widget-bg); border-radius: 1rem; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s ease-in-out; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { font-size: 1.25rem; font-weight: 700; }
+        .close-btn { background: none; border: none; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s ease; font-size: 1.75rem; color: var(--text-secondary); }
+        .close-btn:hover { background-color: var(--hover-bg); }
+        .modal-body { padding: 1.5rem 2rem; text-align: center; }
+        .modal-body p { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .modal-body h2 { font-size: 3rem; font-weight: 700; color: var(--brand-green); margin-bottom: 1rem; }
         .menu-toggle { display: none; } .sidebar-close-btn { display: none; }
-        .enrollment-container { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 2.5rem; box-shadow: var(--shadow-lg); text-align: center; max-width: 450px; width: 100%; margin: 4rem auto; }
-        .enrollment-container h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .enrollment-container p { color: var(--text-secondary); margin-bottom: 2rem; }
         
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
         .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
         .skeleton-line { height: 14px; border-radius: 4px; }
         .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .skeleton-pill-nav { display: inline-flex; background-color: #e2e8f0; border-radius: 99px; padding: 0.25rem; position: relative;}
+        .skeleton-pill { width: 110px; height: 32px; border-radius: 99px; margin: 2px; }
+        .skeleton-pill-nav::before { content:''; position: absolute; top: 0.25rem; bottom: 0.25rem; left: 0.25rem; width: 114px; background-color: var(--widget-bg); border-radius: 99px; z-index: 1;}
 
         @media (max-width: 1024px) {
             .dashboard-container { grid-template-columns: 1fr; }
@@ -168,14 +174,14 @@
         <main class="main-area">
             <header class="main-header">
                 <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1 id="header-title">Course & Content</h1>
+                <h1>Course & Content</h1>
             </header>
             <div id="skeleton-loader">
                 <section class="hero-section">
-                     <h1 class="hero-title"><span class="skeleton" style="width: 350px; height: 48px; display: inline-block; border-radius: 8px; background-color: rgba(255,255,255,0.1);"></span></h1>
-                     <div class="fc-progress-container">
-                         <div class="skeleton-line" style="width: 100%; height: 8px; background-color: rgba(255,255,255,0.2);"></div>
-                     </div>
+                    <div class="container">
+                        <p class="breadcrumbs"><span class="skeleton skeleton-line" style="width: 200px; height: 16px; display: inline-block; background-color: rgba(255,255,255,0.1);"></span></p>
+                        <h1 class="hero-title"><span class="skeleton" style="width: 350px; height: 48px; display: inline-block; border-radius: 8px; background-color: rgba(255,255,255,0.1);"></span></h1>
+                    </div>
                 </section>
                 <div class="content-body">
                     <div class="main-content">
@@ -185,25 +191,33 @@
                                 <div class="skeleton-pill"></div>
                             </div>
                         </div>
+                        <div class="chapter-group" style="margin-bottom: 2.5rem;">
+                            <div class="skeleton skeleton-line" style="width: 250px; height: 24px; margin-bottom: 1.5rem; border-radius: 8px;"></div>
+                            <div class="content-list">
+                                <div class="card" style="border-color: transparent; box-shadow: none;"><div class="skeleton skeleton-avatar"></div><div class="card-info" style="flex-grow: 1;"><p class="skeleton skeleton-line" style="height: 16px; width: 80%; margin-bottom: 0.5rem;"></p><p class="skeleton skeleton-line" style="height: 14px; width: 40%;"></p></div><div class="skeleton" style="height: 38px; min-width: 120px; border-radius: var(--radius-lg);"></div></div>
+                                <div class="card" style="border-color: transparent; box-shadow: none;"><div class="skeleton skeleton-avatar"></div><div class="card-info" style="flex-grow: 1;"><p class="skeleton skeleton-line" style="height: 16px; width: 75%; margin-bottom: 0.5rem;"></p><p class="skeleton skeleton-line" style="height: 14px; width: 35%;"></p></div><div class="skeleton" style="height: 38px; min-width: 120px; border-radius: var(--radius-lg);"></div></div>
+                            </div>
+                        </div>
                     </div>
+                    <aside class="content-sidebar">
+                        <div class="sidebar-card" style="border: none; box-shadow: var(--shadow);">
+                            <h4 class="skeleton skeleton-line" style="height: 20px; width: 150px; margin-bottom: 1.5rem; border-radius: 8px;"></h4>
+                            <div class="stat-grid">
+                                <div class="stat-item"><div class="skeleton" style="width: 50px; height: 28px; margin: 0 auto 0.5rem; border-radius: 8px;"></div><div class="skeleton skeleton-line" style="width: 60px; height: 14px; margin: 0 auto;"></div></div>
+                                <div class="stat-item"><div class="skeleton" style="width: 50px; height: 28px; margin: 0 auto 0.5rem; border-radius: 8px;"></div><div class="skeleton skeleton-line" style="width: 60px; height: 14px; margin: 0 auto;"></div></div>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
             </div>
-            <div id="real-content" style="display:none;">
-                 <section class="hero-section" id="hero-section" style="display: none;">
-                    <h1 class="hero-title" id="hero-title"></h1>
-                    <div class="fc-progress-container">
-                        <div class="fc-progress-info">
-                            <span id="progress-text-details">0/0 Items Completed</span>
-                            <span id="progress-text-percent">0%</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress" id="hero-progress-bar"></div></div>
+            <div id="real-content" style="display:none; contents;">
+                <section class="hero-section">
+                    <div class="container">
+                        <p class="breadcrumbs"><a href="dashboard.html">Dashboard</a> &gt; <span id="subject-breadcrumb"></span></p>
+                        <h1 class="hero-title" id="subject-title"></h1>
                     </div>
-                    <a href="#" class="btn-continue" id="hero-continue-btn">
-                        <span id="continue-btn-text">Continue</span>
-                        <i class='bx bx-play-circle btn-icon'></i>
-                    </a>
                 </section>
-                <div class="content-body" id="content-body" style="display: none;">
+                <div class="content-body">
                     <div class="main-content">
                         <div class="pill-nav-container">
                             <div class="pill-nav">
@@ -225,15 +239,21 @@
                         </div>
                     </aside>
                 </div>
-                <div class="enrollment-container" id="enrollment-prompt" style="display: none;">
-                    <h1>Welcome to the Portal!</h1>
-                    <p>You are not yet enrolled in any courses. Enroll now to start your learning journey.</p>
-                    <a href="course-enroll.html" class="btn-continue">Enroll in a Course</a>
-                </div>
             </div>
         </main>
     </div>
     
+    <div class="modal-overlay" id="results-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="results-modal-title"></h3><button class="close-btn">&times;</button></div>
+            <div class="modal-body">
+                <p>Your Score</p>
+                <h2 id="results-modal-score"></h2>
+                <p id="results-modal-details"></p>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -284,6 +304,9 @@
                         document.getElementById('assessmentsContent').classList.toggle('active', !isCourseTab);
                     });
                 });
+                document.querySelector('#results-modal .close-btn').addEventListener('click', () => {
+                    document.getElementById('results-modal').classList.remove('show');
+                });
             };
 
             const updateProfileUI = (userProfile) => {
@@ -322,10 +345,7 @@
                             courseId = latestEnrollment.courseId;
                             window.history.replaceState({}, '', `?id=${courseId}`);
                         } else {
-                            document.getElementById('skeleton-loader').style.display = 'none';
-                            document.getElementById('real-content').style.display = 'block';
-                            document.getElementById('enrollment-prompt').style.display = 'block';
-                            document.getElementById('main-header').style.display = 'none';
+                            window.location.href = 'course-enroll.html';
                             return;
                         }
                     }
@@ -351,15 +371,16 @@
                     const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
                     const curriculum = courseData.curriculum || [];
 
-                    document.getElementById('header-title').textContent = courseData.name;
+                    document.getElementById('subject-title').textContent = courseData.name;
+                    document.getElementById('subject-breadcrumb').textContent = courseData.name;
                     
                     if (curriculum.length === 0) {
                         document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
                         document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
                     } else {
-                        renderHero(courseData, progressData);
                         renderCurriculum(courseData, progressData);
                     }
+
                     renderSidebarStats(curriculum, progressData);
 
                 } catch(error) {
@@ -367,9 +388,7 @@
                     document.querySelector('.main-area').innerHTML = '<h1>Error loading course content.</h1>';
                 } finally {
                     document.getElementById('skeleton-loader').style.display = 'none';
-                    document.getElementById('real-content').style.display = 'block';
-                    document.getElementById('hero-section').style.display = 'block';
-                    document.getElementById('content-body').style.display = 'grid';
+                    document.getElementById('real-content').style.display = 'contents';
                     const activeTab = document.querySelector('.nav-tab.active');
                     const slider = document.getElementById('pill-slider');
                     if(activeTab && slider) {
@@ -379,39 +398,14 @@
                 }
             };
 
-            const renderHero = (courseData, progressData) => {
-                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
-                const totalItems = allItems.length;
-                const completedItems = allItems.filter(item => progressData[item.id]).length;
-                const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-                
-                document.getElementById('hero-title').textContent = courseData.name;
-                document.getElementById('hero-progress-bar').style.width = `${progressPercent}%`;
-                document.getElementById('progress-text-details').textContent = `${completedItems} / ${totalItems} Items Completed`;
-                document.getElementById('progress-text-percent').textContent = `${progressPercent}%`;
-                
-                const firstUncompleted = allItems.find(item => !progressData[item.id]);
-                const continueBtn = document.getElementById('hero-continue-btn');
-                
-                if (firstUncompleted) {
-                    continueBtn.href = `course-view.html?id=${courseId}`;
-                    document.getElementById('continue-btn-text').textContent = 'Continue Learning';
-                } else if (totalItems > 0) {
-                    continueBtn.href = `course-view.html?id=${courseId}`;
-                    document.getElementById('continue-btn-text').textContent = 'Review Course';
-                } else {
-                    continueBtn.style.display = 'none';
-                }
-            };
-            
             const renderCurriculum = (courseData, progressData) => {
                 const container = document.getElementById('courseContent');
                 container.innerHTML = '';
-                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
+                const allItems = courseData.curriculum.flatMap(c => c.items);
                 const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
 
                 courseData.curriculum.forEach(chapter => {
-                    if (!chapter.items || chapter.items.length === 0) return;
+                    if (chapter.items.length === 0) return;
                     
                     const chapterGroup = document.createElement('div');
                     chapterGroup.className = 'chapter-group';
@@ -423,7 +417,7 @@
                         card.className = 'card';
                         const isCompleted = progressData[item.id];
                         const isNext = firstUncompletedItem && item.id === firstUncompletedItem.id;
-                        let status, prefixClass, buttonHtml = '', statusIcon = '', iconClass = '';
+                        let status, prefixClass, buttonHtml = '', statusIcon = '', metaText = '', iconClass = '';
 
                         iconClass = item.type === 'quiz' ? 'bxs-help-circle' : 'bxs-file-blank';
                         
@@ -443,8 +437,7 @@
                             card.onclick = () => window.location.href = `course-view.html?id=${courseId}`;
                         }
                         
-                        card.innerHTML = `
-                            <div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
+                        card.innerHTML = `<div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
                             <div class="card-info"><p class="card-title">${item.title}</p></div>
                             ${statusIcon}${buttonHtml}`;
                         itemsContainer.appendChild(card);
