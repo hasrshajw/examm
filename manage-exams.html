@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Exams - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --body-bg: #F9FAFB;
+            --widget-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --brand-purple: #6D28D9;
+            --brand-purple-hover: #5B21B6;
+            --hover-bg: #F3F4F6;
+            --danger-color: #EF4444;
+            --danger-hover: #DC2626;
+            --danger-bg-light: #FEE2E2;
+            --danger-text-dark: #B91C1C;
+            --success-color: #10B981;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
+        a { text-decoration: none; }
+        ul { list-style: none; }
+
+        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
+        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
+        .main-area { display: flex; flex-direction: column; overflow-y: auto; background-color: var(--body-bg); }
+        .main-header { padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
+        .content-body { padding: 2rem 2.5rem; }
+        
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 3rem; }
+        .logo-image { height: 40px; }
+        .main-nav { flex-grow: 1; }
+        .main-nav ul { display: flex; flex-direction: column; gap: 0.5rem; }
+        .main-nav a { display: flex; align-items: center; gap: 1rem; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
+        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
+        .main-nav a:hover { background-color: var(--hover-bg); }
+        .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; }
+        .main-nav a.active i { color: var(--brand-purple); }
+        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .profile-details { flex-grow: 1; min-width: 0; }
+        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+        .profile-section.active .profile-options i { transform: rotate(180deg); }
+        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .popup-list { padding-top: 0.5rem; }
+        .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; color: var(--text-primary); }
+        .popup-list a:hover { background-color: var(--hover-bg); }
+        .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
+        .popup-list a.logout i { color: var(--danger-color); }
+        .popup-list a.logout { color: var(--danger-color); }
+
+        .admin-content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .admin-content-header h2 { font-size: 1.875rem; font-weight: 700; color: var(--text-primary); }
+        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
+        .back-btn { margin-bottom: 1.5rem; font-weight: 600; color: var(--brand-purple); display: inline-flex; align-items: center; gap: 0.5rem; }
+        .back-btn:hover { color: var(--brand-purple-hover); }
+        .back-btn i { font-size: 1.25rem; }
+        .primary-btn, .secondary-btn { padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; transition: all 0.2s ease-in-out; border: none; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .primary-btn { background-color: var(--brand-purple); color: white; }
+        .primary-btn:hover { background-color: var(--brand-purple-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .secondary-btn { color: var(--text-primary); background-color: var(--widget-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+        .secondary-btn:hover { background-color: var(--hover-bg); }
+        .menu-toggle, .sidebar-close-btn { display: none; }
+
+        .admin-table { width: 100%; background-color: var(--widget-bg); border-radius: 12px; border-collapse: collapse; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+        .admin-table th, .admin-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .admin-table th { background: #F9FAFB; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; font-weight: 600; }
+        .admin-table td { color: var(--text-primary); font-weight: 500; }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .lock-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .lock-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--danger-color); transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .actions-cell { text-align: right !important; width: 1%; white-space: nowrap; }
+        .actions-container { position: relative; display: inline-flex; }
+        .actions-container.menu-open { z-index: 20; }
+        .action-menu-btn { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; }
+        .action-menu-btn:hover { background-color: var(--hover-bg); }
+        .action-menu-btn i { font-size: 1.5rem; color: var(--text-secondary); }
+        .action-dropdown { position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background-color: var(--widget-bg); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-lg); z-index: 15; min-width: 150px; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.95); transition: opacity 0.15s ease, transform 0.15s ease; }
+        .action-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+        .action-item { display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left; padding: 0.75rem; border-radius: 8px; background: none; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s ease, color 0.2s ease; }
+        .action-item:hover { background-color: var(--hover-bg); }
+        .action-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .action-item.edit { color: var(--text-primary); }
+        .action-item.delete { color: var(--danger-color); }
+
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 1999; display: grid; place-items: center; padding: 1rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; backdrop-filter: blur(4px); }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--widget-bg); border-radius: 1rem; width: 100%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s ease-in-out; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { font-size: 1.25rem; font-weight: 700; }
+        .close-btn { background: none; border: none; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s ease; font-size: 1.75rem; color: var(--text-secondary); }
+        .close-btn:hover { background-color: var(--hover-bg); }
+        .modal-body { flex-grow: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+        .form-field { margin-bottom: 1.25rem; }
+        .form-field label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .form-field input, .form-field textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--brand-purple); box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+        .full-width { grid-column: 1 / -1; }
+        .questions-header { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
+        .questions-header h4 { font-size: 1.125rem; font-weight: 700; }
+        .accordion-item { border: 1px solid var(--border-color); border-radius: 12px; margin-top: 1rem; overflow: hidden; }
+        .accordion-button { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; padding: 1rem 1.5rem; background-color: #F9FAFB; border: none; cursor: pointer; font-weight: 600; font-size: 1rem; }
+        .accordion-button span { flex-grow: 1; }
+        .accordion-button i { transition: transform 0.3s ease; font-size: 1.5rem; }
+        .accordion-button.active i { transform: rotate(180deg); }
+        .accordion-content-inner { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: var(--widget-bg); }
+        .question-card { padding: 1.5rem; position: relative; }
+        .remove-item-btn { position: absolute; top: 1rem; right: 1rem; background: var(--hover-bg); color: var(--danger-color); border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .remove-item-btn:hover { background-color: var(--danger-hover); color: white; }
+        .modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); text-align: right; background-color: #F9FAFB; }
+        .modal-footer .secondary-btn { margin-right: 0.75rem; }
+
+        .actionsheet-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .actionsheet-overlay.show { opacity: 1; pointer-events: auto; }
+        .actionsheet { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--widget-bg); border-top-left-radius: 1rem; border-top-right-radius: 1rem; padding: 1rem; z-index: 2001; transform: translateY(100%); transition: transform 0.3s ease-out; }
+        .actionsheet.show { transform: translateY(0); }
+        .actionsheet-header { text-align: center; padding-bottom: 1rem; }
+        .actionsheet-header::before { content: ''; display: block; width: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; margin: 0 auto 1rem; }
+        .actionsheet-title { font-size: 1.25rem; font-weight: 700; }
+        .actionsheet-content { padding: 1rem 0; border-top: 1px solid var(--border-color); margin-top: 1rem; }
+        .actionsheet-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: left; margin-bottom: 1.5rem; }
+        .actionsheet-details p { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .actionsheet-details strong { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+        .actionsheet-status-control { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: var(--hover-bg); border-radius: 12px; }
+        
+        .actionsheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; padding: 1.5rem 0 0.5rem 0; }
+        .actionsheet-btn { padding: 0.9rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .actionsheet-btn svg { width: 18px; height: 18px; }
+        .actionsheet-btn:active { transform: scale(0.97); }
+        .actionsheet-btn--edit { background-color: var(--hover-bg); color: var(--text-primary); }
+        .actionsheet-btn--edit:hover { background-color: var(--border-color); }
+        .actionsheet-btn--delete { background-color: var(--danger-bg-light); color: var(--danger-text-dark); }
+        .actionsheet-btn--delete:hover { background-color: #FECACA; }
+        .actionsheet-cancel button { width: 100%; background-color: var(--widget-bg); color: var(--text-secondary); font-weight: 600; padding: 0.9rem; border: none; cursor: pointer; border-radius: 12px; transition: background-color 0.2s ease; }
+        .actionsheet-cancel button:hover { background-color: var(--hover-bg); }
+
+        .mobile-card-view { display: none; }
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .main-header { padding: 1.25rem 1.5rem; }
+            .content-body { padding: 1.5rem; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; }
+            .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .overlay.active { opacity: 1; pointer-events: auto; }
+            .admin-table { display: none; }
+            .mobile-card-view { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+            .exam-card-mobile { background-color: var(--widget-bg); border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+            .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+            .card-header h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; flex-grow: 1; }
+            .status-badge { font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 99px; flex-shrink: 0; }
+            .status-badge.active { background-color: #D1FAE5; color: #065F46; }
+            .status-badge.locked { background-color: var(--danger-bg-light); color: var(--danger-text-dark); }
+            .card-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; color: var(--text-secondary); font-size: 0.875rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+            .info-item { display: flex; align-items: center; gap: 0.5rem; }
+            .info-item i { font-size: 1.1rem; }
+            .card-footer { display: flex; justify-content: flex-end; }
+            .card-footer .primary-btn { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .admin-content-header { flex-direction: column; align-items: stretch; }
+            .admin-content-header h2 { font-size: 1.5rem; }
+            .admin-content-header .primary-btn { width: 100%; justify-content: center; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center; font-weight: 600;">Authenticating...</div>
+    <div class="overlay" id="overlay"></div>
+    <div class="dashboard-container" style="display: none;">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
+            <div class="sidebar-header"><img src="https://ihtnas.com/assets/ihtnas-nav.png" alt="Ihtnas Logo" class="logo-image"></div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="admin.html"><i class='bx bxs-dashboard'></i> Dashboard</a></li>
+                    <li><a href="manage-subjects.html" class="active"><i class='bx bxs-layer'></i> Subjects & Content</a></li>
+                    <li><a href="manage-colleges.html"><i class='bx bxs-school'></i> Colleges</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section" id="profile-section">
+                <img src="" alt="Profile Picture" class="profile-avatar">
+                <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+            </div>
+            <div class="profile-popup" id="profile-popup">
+                <div class="popup-header">
+                    <img src="" alt="Profile Picture" class="profile-avatar">
+                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
+                </div>
+                <ul class="popup-list">
+                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-area">
+            <header class="main-header">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Open menu"><i class='bx bx-menu'></i></button>
+                <h1>Manage Exams</h1>
+            </header>
+            <section class="content-body">
+                <a href="manage-subjects.html" class="back-btn"><i class='bx bx-arrow-back'></i> Back to Subjects</a>
+                <div class="admin-content-header">
+                    <h2 id="page-title"></h2>
+                    <button class="primary-btn" id="create-exam-btn"><i class='bx bx-plus'></i> Create New Exam</button>
+                </div>
+                <table class="admin-table">
+                    <thead><tr><th>Exam Name</th><th>Duration</th><th>Questions</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="exams-tbody"></tbody>
+                </table>
+                <div class="mobile-card-view" id="exams-cards"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="exam-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="exam-modal-title"></h3><button class="close-btn">&times;</button></div>
+            <div class="modal-body">
+                <form id="exam-form">
+                    <input type="hidden" id="exam-id">
+                    <div class="form-grid">
+                        <div class="form-field"><label for="exam-name">Exam Name</label><input type="text" id="exam-name" required></div>
+                        <div class="form-field"><label for="exam-duration">Duration (minutes)</label><input type="number" id="exam-duration" required></div>
+                        <div class="form-field full-width"><label for="exam-deadline-date">Deadline Date (optional)</label><input type="date" id="exam-deadline-date"></div>
+                    </div>
+                    <div class="questions-header"><h4>Questions</h4><button type="button" class="primary-btn" id="add-question-btn"><i class='bx bx-plus'></i> Add Question</button></div>
+                    <div id="questions-container"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="secondary-btn">Cancel</button><button class="primary-btn" id="save-exam-btn">Save Exam</button></div>
+        </div>
+    </div>
+
+    <div class="actionsheet-overlay" id="actionsheet-overlay">
+        <div class="actionsheet" id="actionsheet">
+            <div class="actionsheet-header"><h3 id="actionsheet-title"></h3></div>
+            <div class="actionsheet-content">
+                <div class="actionsheet-details">
+                    <div><p>Duration</p><strong id="actionsheet-duration"></strong></div>
+                    <div><p>Questions</p><strong id="actionsheet-questions"></strong></div>
+                    <div style="grid-column: 1 / -1;"><p>Deadline</p><strong id="actionsheet-deadline"></strong></div>
+                </div>
+                <div class="actionsheet-status-control">
+                    <strong>Status</strong>
+                    <label class="lock-switch"><input type="checkbox" id="actionsheet-lock-toggle"><span class="slider"></span></label>
+                </div>
+            </div>
+            <div class="actionsheet-actions">
+                <button class="actionsheet-btn actionsheet-btn--edit edit-exam-btn">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.25 5.75C16.8693 4.36929 14.6307 4.36929 13.25 5.75L10.125 8.875L5.52404 13.476C4.86236 14.1376 4.45361 15.0104 4.36889 15.9423L4 20.0001L8.0578 19.6311C8.98967 19.5464 9.86234 19.1377 10.524 18.476L18.25 10.75C19.6307 9.36929 19.6307 7.13071 18.25 5.75V5.75Z" stroke="currentColor" stroke-width="2"></path><path d="M12.5 7.5L16.5 11.5" stroke="currentColor" stroke-width="2"></path></svg>
+                    Edit
+                </button>
+                <button class="actionsheet-btn actionsheet-btn--delete delete-exam-btn">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.99561 7H20.9956" stroke="currentColor" stroke-width="2"></path><path d="M9.99561 11V17M13.9956 11V17" stroke="currentColor" stroke-width="2"></path><path d="M8 6.5L8.68917 4.08792C8.87315 3.44397 9.46173 3 10.1315 3H13.8685C14.5383 3 15.1268 3.44397 15.3108 4.08792L16 6.5" stroke="currentColor" stroke-width="2"></path><path d="M5 7L5.80098 18.2137C5.91312 19.7837 7.21944 21 8.79336 21H15.2066C16.7806 21 18.0869 19.7837 18.199 18.2137L19 7" stroke="currentColor" stroke-width="2"></path></svg>
+                    Delete
+                </button>
+            </div>
+            <div class="actionsheet-cancel"><button id="actionsheet-cancel-btn">Cancel</button></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+                authDomain: "exam-2e799.firebaseapp.com",
+                projectId: "exam-2e799",
+                storageBucket: "exam-2e799.firebasestorage.app",
+                messagingSenderId: "472506328501",
+                appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+                measurementId: "G-NX21HT3JKT"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const ADMIN_EMAIL = "harshavardhanjw@gmail.com";
+
+            let currentSubject = null;
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user && user.email === ADMIN_EMAIL) {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    initSharedUI(userDoc.exists ? userDoc.data() : { displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+                    initPage();
+                } else {
+                    window.location.href = 'index.html';
+                }
+            });
+
+            const initSharedUI = (adminProfile) => {
+                document.querySelectorAll('.profile-avatar').forEach(el => el.src = adminProfile.photoURL || '');
+                document.querySelectorAll('.profile-name').forEach(el => el.textContent = adminProfile.displayName);
+                document.querySelectorAll('.profile-email').forEach(el => el.textContent = adminProfile.email);
+                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+                const profileSection = document.getElementById('profile-section');
+                const profilePopup = document.getElementById('profile-popup');
+                profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
+                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menu-toggle');
+                const closeBtn = document.getElementById('sidebar-close-btn');
+                const overlay = document.getElementById('overlay');
+                const toggleMenu = () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); };
+                menuToggle.addEventListener('click', toggleMenu);
+                closeBtn.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+            };
+
+            const initPage = async () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const subjectId = urlParams.get('subjectId');
+                if (!subjectId) { window.location.href = 'manage-subjects.html'; return; }
+                const subjectDoc = await db.collection('subjects').doc(subjectId).get();
+                if (!subjectDoc.exists) { window.location.href = 'manage-subjects.html'; return; }
+                currentSubject = { id: subjectId, ...subjectDoc.data() };
+                document.getElementById('page-title').textContent = `Exams in ${currentSubject.name}`;
+                loadExams();
+                document.querySelector('.dashboard-container').style.display = 'grid';
+                document.getElementById('loading-overlay').style.display = 'none';
+            };
+
+            const formatDate = (timestamp) => {
+                if (!timestamp) return "No Deadline";
+                return new Date(timestamp.seconds * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            };
+
+            const loadExams = () => {
+                const tbody = document.getElementById('exams-tbody');
+                const cardsContainer = document.getElementById('exams-cards');
+                db.collection('exams').where('subjectId', '==', currentSubject.id).onSnapshot(snapshot => {
+                    tbody.innerHTML = '';
+                    cardsContainer.innerHTML = '';
+                    snapshot.docs.sort((a, b) => a.data().name.localeCompare(b.data().name)).forEach(doc => {
+                        const exam = doc.data();
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${exam.name}</td>
+                            <td>${exam.duration / 60} min</td>
+                            <td>${exam.questions.length}</td>
+                            <td>${formatDate(exam.deadline)}</td>
+                            <td><label class="lock-switch"><input type="checkbox" class="lock-toggle" data-id="${doc.id}" ${!exam.isLocked ? 'checked' : ''}><span class="slider"></span></label></td>
+                            <td class="actions-cell">
+                                <div class="actions-container">
+                                    <button class="action-menu-btn" aria-label="Actions"><i class='bx bx-dots-vertical-rounded'></i></button>
+                                    <div class="action-dropdown">
+                                        <button class="action-item edit" data-id="${doc.id}">
+                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.25 5.75C16.8693 4.36929 14.6307 4.36929 13.25 5.75L10.125 8.875L5.52404 13.476C4.86236 14.1376 4.45361 15.0104 4.36889 15.9423L4 20.0001L8.0578 19.6311C8.98967 19.5464 9.86234 19.1377 10.524 18.476L18.25 10.75C19.6307 9.36929 19.6307 7.13071 18.25 5.75V5.75Z" stroke="currentColor" stroke-width="2"></path><path d="M12.5 7.5L16.5 11.5" stroke="currentColor" stroke-width="2"></path></svg>
+                                            Edit
+                                        </button>
+                                        <button class="action-item delete" data-id="${doc.id}">
+                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.99561 7H20.9956" stroke="currentColor" stroke-width="2"></path><path d="M9.99561 11V17M13.9956 11V17" stroke="currentColor" stroke-width="2"></path><path d="M8 6.5L8.68917 4.08792C8.87315 3.44397 9.46173 3 10.1315 3H13.8685C14.5383 3 15.1268 3.44397 15.3108 4.08792L16 6.5" stroke="currentColor" stroke-width="2"></path><path d="M5 7L5.80098 18.2137C5.91312 19.7837 7.21944 21 8.79336 21H15.2066C16.7806 21 18.0869 19.7837 18.199 18.2137L19 7" stroke="currentColor" stroke-width="2"></path></svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>`;
+                        tbody.appendChild(row);
+
+                        const card = document.createElement('div');
+                        card.className = 'exam-card-mobile';
+                        const statusClass = !exam.isLocked ? 'active' : 'locked';
+                        const statusText = !exam.isLocked ? 'Active' : 'Locked';
+                        card.innerHTML = `
+                            <div class="card-header">
+                                <h3>${exam.name}</h3>
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="info-item"><i class='bx bx-time-five'></i> ${exam.duration / 60} min</div>
+                                <div class="info-item"><i class='bx bx-list-ul'></i> ${exam.questions.length} Questions</div>
+                                <div class="info-item"><i class='bx bx-calendar-x'></i> ${formatDate(exam.deadline)}</div>
+                            </div>
+                            <div class="card-footer">
+                                <button class="primary-btn manage-mobile-btn" data-id="${doc.id}">Manage</button>
+                            </div>`;
+                        cardsContainer.appendChild(card);
+                    });
+                });
+            };
+
+            const openExamModal = (exam = null) => {
+                const modal = document.getElementById('exam-modal');
+                modal.querySelector('#exam-modal-title').textContent = exam ? 'Edit Exam' : 'Create New Exam';
+                modal.querySelector('#exam-id').value = exam ? exam.id : '';
+                modal.querySelector('#exam-name').value = exam ? exam.name : '';
+                modal.querySelector('#exam-duration').value = exam ? exam.duration / 60 : '';
+                if (exam && exam.deadline) {
+                    modal.querySelector('#exam-deadline-date').value = new Date(exam.deadline.seconds * 1000).toISOString().split('T')[0];
+                } else {
+                    modal.querySelector('#exam-deadline-date').value = '';
+                }
+                const questionsContainer = modal.querySelector('#questions-container');
+                questionsContainer.innerHTML = '';
+                if (exam) exam.questions.forEach(addQuestionToForm);
+                modal.classList.add('show');
+            };
+
+            const addQuestionToForm = (question = {}) => {
+                const container = document.getElementById('questions-container');
+                const index = container.querySelectorAll('.accordion-item').length;
+                const item = document.createElement('div');
+                item.className = 'accordion-item';
+                item.innerHTML = `
+                    <button type="button" class="accordion-button"><span>${index + 1}. ${question.title || 'New Question'}</span><i class='bx bx-chevron-down'></i></button>
+                    <div class="accordion-content-inner">
+                        <div class="question-card">
+                            <button type="button" class="remove-item-btn" aria-label="Remove Question">&times;</button>
+                            <div class="form-field full-width"><label for="q-title-${index}">Question Title</label><textarea id="q-title-${index}" rows="2" class="question-title">${question.title || ''}</textarea></div>
+                            <div class="form-grid">
+                                ${[0, 1, 2, 3].map(i => `<div class="form-field"><label for="q-${index}-opt-${i}">Option ${String.fromCharCode(65 + i)}</label><input type="text" id="q-${index}-opt-${i}" class="question-option" value="${(question.options && question.options[i]) || ''}" required></div>`).join('')}
+                                <div class="form-field"><label for="q-${index}-correct">Correct Answer (0-3)</label><input type="number" id="q-${index}-correct" class="question-correct" min="0" max="3" value="${question.correctAnswer ?? ''}" required></div>
+                                <div class="form-field"><label for="q-${index}-points">Points</label><input type="number" id="q-${index}-points" class="question-points" value="${question.points || ''}" required></div>
+                            </div>
+                        </div>
+                    </div>`;
+                container.appendChild(item);
+                item.querySelector('.question-title').addEventListener('input', e => {
+                    item.querySelector('.accordion-button span').textContent = `${index + 1}. ${e.target.value || 'New Question'}`;
+                });
+            };
+
+            const openActionsheet = async (examId) => {
+                const doc = await db.collection('exams').doc(examId).get();
+                if(!doc.exists) return;
+                const exam = doc.data();
+                
+                document.getElementById('actionsheet-title').textContent = exam.name;
+                document.getElementById('actionsheet-duration').textContent = `${exam.duration / 60} min`;
+                document.getElementById('actionsheet-questions').textContent = `${exam.questions.length} Questions`;
+                document.getElementById('actionsheet-deadline').textContent = formatDate(exam.deadline);
+                
+                const toggle = document.getElementById('actionsheet-lock-toggle');
+                toggle.checked = !exam.isLocked;
+                toggle.dataset.id = examId;
+                
+                const sheet = document.getElementById('actionsheet');
+                sheet.querySelector('.edit-exam-btn').dataset.id = examId;
+                sheet.querySelector('.delete-exam-btn').dataset.id = examId;
+                document.getElementById('actionsheet-overlay').classList.add('show');
+                sheet.classList.add('show');
+            };
+
+            const closeActionsheet = () => {
+                document.getElementById('actionsheet-overlay').classList.remove('show');
+                document.getElementById('actionsheet').classList.remove('show');
+            };
+            
+            document.addEventListener('click', async e => {
+                const isDropdownButton = e.target.closest('.action-menu-btn');
+                document.querySelectorAll('.action-dropdown.active').forEach(dropdown => {
+                    if (!isDropdownButton || dropdown !== isDropdownButton.nextElementSibling) {
+                        dropdown.classList.remove('active');
+                        dropdown.closest('.actions-container').classList.remove('menu-open');
+                    }
+                });
+                if (isDropdownButton) {
+                    const dropdown = isDropdownButton.nextElementSibling;
+                    const container = isDropdownButton.closest('.actions-container');
+                    dropdown.classList.toggle('active');
+                    container.classList.toggle('menu-open', dropdown.classList.contains('active'));
+                }
+                
+                const button = e.target.closest('button');
+                if (!button) return;
+                
+                if (button.id === 'create-exam-btn') openExamModal();
+                if (button.matches('.edit-exam-btn, .action-item.edit')) {
+                    closeActionsheet();
+                    const doc = await db.collection('exams').doc(button.dataset.id).get();
+                    openExamModal({ id: doc.id, ...doc.data() });
+                }
+                if (button.matches('.delete-exam-btn, .action-item.delete')) {
+                    closeActionsheet();
+                    if (confirm('Are you sure you want to delete this exam? This action cannot be undone.')) {
+                        await db.collection('exams').doc(button.dataset.id).delete();
+                    }
+                }
+                if (button.matches('.manage-mobile-btn')) openActionsheet(button.dataset.id);
+                if (button.id === 'add-question-btn') addQuestionToForm();
+                if (button.matches('.remove-item-btn')) {
+                    button.closest('.accordion-item').remove();
+                    document.querySelectorAll('#questions-container .accordion-button span').forEach((span, index) => {
+                        const currentText = span.textContent.split('. ')[1];
+                        span.textContent = `${index + 1}. ${currentText}`;
+                    });
+                }
+                if (button.matches('.accordion-button')) {
+                    button.classList.toggle('active');
+                    const content = button.nextElementSibling;
+                    content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+                }
+                if (button.matches('.modal-overlay .close-btn, .modal-footer .secondary-btn')) {
+                    button.closest('.modal-overlay').classList.remove('show');
+                }
+                if (button.id === 'actionsheet-cancel-btn' || e.target.id === 'actionsheet-overlay') closeActionsheet();
+            });
+            
+            document.getElementById('exams-tbody').addEventListener('change', async e => {
+                 if (e.target.classList.contains('lock-toggle')) {
+                    await db.collection('exams').doc(e.target.dataset.id).update({ isLocked: !e.target.checked });
+                }
+            });
+
+            document.getElementById('actionsheet-lock-toggle').addEventListener('change', async e => {
+                await db.collection('exams').doc(e.target.dataset.id).update({ isLocked: !e.target.checked });
+            });
+
+            document.getElementById('save-exam-btn').addEventListener('click', async () => {
+                const form = document.getElementById('exam-form');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const id = document.getElementById('exam-id').value;
+                const questions = [];
+                document.querySelectorAll('#questions-container .question-card').forEach(card => {
+                    questions.push({
+                        title: card.querySelector('.question-title').value.trim(), 
+                        options: [...card.querySelectorAll('.question-option')].map(opt => opt.value.trim()),
+                        correctAnswer: parseInt(card.querySelector('.question-correct').value, 10), 
+                        points: parseInt(card.querySelector('.question-points').value, 10), 
+                        type: 'Mcq'
+                    });
+                });
+                const date = document.getElementById('exam-deadline-date').value;
+                let deadline = null;
+                if(date) {
+                    const d = new Date(date);
+                    d.setHours(23, 59, 59, 999);
+                    deadline = firebase.firestore.Timestamp.fromDate(d);
+                }
+
+                const data = { 
+                    name: document.getElementById('exam-name').value.trim(), 
+                    duration: parseInt(document.getElementById('exam-duration').value, 10) * 60, 
+                    subjectId: currentSubject.id, 
+                    questions, 
+                    deadline 
+                };
+                if (id) {
+                    await db.collection('exams').doc(id).update(data);
+                } else {
+                    data.isLocked = true;
+                    await db.collection('exams').add(data);
+                }
+                document.getElementById('exam-modal').classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>
