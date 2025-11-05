@@ -3,241 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course & Content - Exam Portal</title>
+    <title>Exam Portal - Welcome</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
         :root {
-            --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB;
-            --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375;
-            --hover-bg: #F3F4F6; --danger-color: #EF4444;
-            --c-primary: #002726; --c-primary-dark: #001A19; --c-accent: #33C375; --c-accent-light: #D1FAE5;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --primary: #111827;
+            --accent: #10B981;
+            --pure-white: #FFFFFF;
+            --light-gray: #F3F4F6;
+            --text-color: #111827;
+            --text-light: #6B7280;
+            --border-gray: #E5E7EB;
+            --color-danger: #EF4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --radius-lg: 0.75rem; --space-md: 1rem; --space-lg: 1.5rem; --space-xl: 2.5rem;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--body-bg); color: var(--text-primary); font-size: 14px; overflow: hidden; }
-        .dashboard-container { display: grid; grid-template-columns: 260px 1fr; height: 100vh; position: relative; }
-        .sidebar { background-color: var(--widget-bg); border-right: 1px solid var(--border-color); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: relative; transition: transform 0.3s ease-in-out; }
-        .sidebar-header { display: flex; align-items: center; margin-bottom: 3rem; } .logo-image { height: 40px; }
-        .main-nav { flex-grow: 1; } .main-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-        .main-nav a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text-primary); font-weight: 500; padding: 0.75rem 1rem; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; }
-        .main-nav a i { font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s ease; }
-        .main-nav a:hover { background-color: var(--hover-bg); } .main-nav a.active { background-color: var(--hover-bg); font-weight: 600; } .main-nav a.active i { color: var(--brand-green); }
-        .profile-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-        .profile-content-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
-        .profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-        .profile-details { flex-grow: 1; min-width: 0; }
-        .profile-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .profile-email { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .profile-options i { font-size: 1.5rem; color: var(--text-secondary); transition: transform 0.2s ease; }
-        .profile-section.active .profile-options i { transform: rotate(180deg); }
-        .profile-popup { position: absolute; bottom: 90px; left: 1.5rem; right: 1.5rem; background-color: var(--widget-bg); border-radius: 12px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 0.75rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; }
-        .profile-popup.active { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
-        .popup-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .popup-list { list-style: none; padding-top: 0.5rem; } .popup-list a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
-        .popup-list a:hover { background-color: var(--hover-bg); } .popup-list a i { font-size: 1.2rem; color: var(--text-secondary); }
-        .popup-list a.logout i { color: var(--danger-color); } .popup-list a.logout { color: var(--danger-color); }
-        .main-area { display: flex; flex-direction: column; overflow-y: auto; }
-        .main-header { padding: 1.25rem 3rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--widget-bg); position: sticky; top: 0; z-index: 10; }
-        .main-header h1 { font-size: 1.5rem; font-weight: 600; }
-        .hero-section { background-color: var(--text-primary); color: #FFFFFF; padding: 3rem; }
-        .hero-title { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; }
-        .fc-progress-container { margin-top: 2rem; }
-        .fc-progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
-        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; }
-        .progress { height: 100%; background: var(--brand-green); border-radius: 10px; width: 0; transition: width 0.5s ease; }
-        .btn-continue { background: var(--brand-green); color: #FFFFFF; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
-        .btn-continue:hover { background-color: #2da967; }
-        .btn-continue .btn-icon { font-size: 1.2rem; }
-        .content-body { padding: 2rem 3rem 3rem 3rem; display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: flex-start; }
-        .main-content { min-width: 0; }
-        .content-sidebar { position: sticky; top: calc(2rem + 73px); }
-        .pill-nav-container { display: flex; justify-content: flex-start; margin-bottom: 2rem; }
-        .pill-nav { position: relative; display: inline-flex; background-color: var(--hover-bg); border-radius: 99px; padding: 0.25rem; }
-        .nav-tab { border: none; background: none; padding: 0.5rem 1.25rem; font-size: 1rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); border-radius: 99px; position: relative; z-index: 2; transition: color 0.3s ease; }
-        .nav-tab.active { color: var(--text-primary); }
-        #pill-slider { position: absolute; top: 0.25rem; bottom: 0.25rem; border-radius: 99px; background-color: var(--widget-bg); box-shadow: var(--shadow); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
-        .content-section { display: none; } .content-section.active { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .chapter-group { margin-bottom: var(--space-xl); }
-        .chapter-title { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-lg); padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-color); }
-        .content-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .card { display: flex; align-items: center; gap: 1rem; background-color: var(--widget-bg); padding: 0.75rem; border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: var(--transition); position: relative; cursor: pointer; }
-        .card:not([data-status='locked']):hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-        .card-prefix { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem; font-weight: 600; }
-        .card-info { flex-grow: 1; } .card-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
-        .card-meta { font-size: 0.85rem; color: var(--text-secondary); }
-        .card-button { background-color: var(--c-primary); color: #FFFFFF; border: none; border-radius: 0.75rem; padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 600; transition: background-color 0.2s ease; min-width: 120px; text-align: center; }
-        .card-button:hover { background-color: var(--c-primary-dark); }
-        .card-status-icon { font-size: 1.5rem; color: var(--c-accent); margin-left: auto; }
-        .card[data-status="completed"] { background-color: #F8F8F8; }
-        .card[data-status="completed"] .card-title { color: var(--text-secondary); }
-        .card-prefix--completed { background-color: var(--c-accent-light); color: var(--c-accent); }
-        .card[data-status="next"] { border-color: var(--c-primary); }
-        .card-prefix--default { background-color: #e0e0e0; color: var(--c-primary); }
-        .card[data-status="locked"] { opacity: 0.7; background-color: var(--hover-bg); pointer-events: none; }
-        .card-prefix--locked { background-color: #E5E7EB; color: var(--text-secondary); }
-        .card-button--locked { background-color: var(--border-color); color: var(--text-secondary); cursor: not-allowed; }
-        .sidebar-card { background-color: var(--widget-bg); border-radius: 1rem; padding: 1.5rem; border: 2px solid var(--border-color); }
-        .sidebar-card h4 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .stat-item { text-align: center; } .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
-        .stat-label { font-size: 0.875rem; color: var(--text-secondary); }
-        .menu-toggle { display: none; } .sidebar-close-btn { display: none; }
-        .enrollment-container { background-color: var(--widget-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: 2.5rem; box-shadow: var(--shadow-lg); text-align: center; max-width: 450px; width: 100%; margin: 4rem auto; }
-        .enrollment-container h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .enrollment-container p { color: var(--text-secondary); margin-bottom: 2rem; }
-        
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton { background-color: #e2e8f0; position: relative; overflow: hidden; }
-        .skeleton::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; }
-        .skeleton-line { height: 14px; border-radius: 4px; }
-        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
-
-        @media (max-width: 1024px) {
-            .dashboard-container { grid-template-columns: 1fr; }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 80%; max-width: 300px; z-index: 1000; transform: translateX(-100%); box-shadow: 0 0 30px rgba(0,0,0,0.1); }
-            .sidebar.active { transform: translateX(0); }
-            .main-header { padding: 1.25rem 1.5rem; } .main-header h1 { font-size: 1.25rem; }
-            .hero-section { padding: 2rem 1.5rem; } .hero-title { font-size: 2.25rem; }
-            .content-body { grid-template-columns: 1fr; padding: 1.5rem; }
-            .content-sidebar { position: static; width: 100%; }
-            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; border: 2px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; }
-            .menu-toggle:hover { background-color: var(--hover-bg); }
-            .sidebar-close-btn { display: flex; align-items: center; justify-content: center; position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.75rem; color: var(--danger-color); cursor: pointer; border: none; background: none; transition: color 0.2s ease; }
-            .sidebar-close-btn:hover { color: #b91c1c; }
-            .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-            .overlay.active { opacity: 1; pointer-events: auto; }
-            .pill-nav-container { justify-content: center; }
-            .stat-value { font-size: 1.5rem; }
-            .stat-label { font-size: 0.8rem; }
-            .chapter-title { font-size: 1.25rem; }
-            .card { padding: 0.6rem; }
-            .card-title { font-size: 0.95rem; }
-            .card-meta { font-size: 0.8rem; }
-            .card-button { font-size: 0.85rem; min-width: 110px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--pure-white); display: flex; justify-content: center; align-items: center; color: var(--text-color); }
+        .page-container { width: 100%; height: 100%; max-height: 900px; background-color: var(--pure-white); border-radius: 0; overflow: hidden; display: flex; flex-direction: column; }
+        .form-panel-wrapper { flex-grow: 1; position: relative; display: flex; flex-direction: column; overflow-y: auto; }
+        .info-panel { display: none; }
+        .page { display: none; flex-direction: column; padding: 2rem; flex-grow: 1; justify-content: flex-start; }
+        .page.active { display: flex; }
+        .form-toggle { display: flex; background-color: var(--light-gray); border-radius: 12px; padding: 5px; margin-bottom: 2.5rem; flex-shrink: 0; position: relative; }
+        .toggle-btn { width: 50%; padding: 0.75rem; border: none; background-color: transparent; color: var(--text-light); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: color 0.3s ease; z-index: 2; }
+        #toggle-slider { position: absolute; top: 5px; bottom: 5px; background-color: var(--pure-white); border-radius: 9px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
+        .form-header h2 { font-size: 1.8rem; font-weight: 600; text-align: center; margin-bottom: 0.5rem; }
+        .form-header p { text-align: center; color: var(--text-light); margin-bottom: 2rem; font-size: 0.9rem; }
+        .input-group { margin-bottom: 1.25rem; }
+        .input-group label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-light); }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.25rem; color: var(--text-light); }
+        .input-wrapper .toggle-password { position: absolute; right: 1rem; left: auto; cursor: pointer; }
+        .input-group input, .custom-select-trigger { width: 100%; padding: 0.9rem 1rem 0.9rem 3rem; border: 1px solid var(--border-gray); background-color: var(--light-gray); border-radius: 12px; font-size: 1rem; font-family: 'IBM Plex Sans', sans-serif; transition: all 0.3s ease; }
+        .input-group input:focus, .custom-select-trigger:focus, .custom-select-wrapper.open .custom-select-trigger { outline: none; border-color: var(--accent); background-color: var(--pure-white); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+        .custom-select-wrapper { position: relative; }
+        .custom-select-trigger { text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .custom-select-trigger i { transition: transform 0.2s ease; margin-left: auto; }
+        .custom-select-wrapper.open .custom-select-trigger i { transform: rotate(180deg); }
+        .custom-select-trigger.disabled { background-color: var(--light-gray); color: #9ca3af; cursor: not-allowed; }
+        .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: var(--pure-white); border: 1px solid var(--border-gray); border-radius: 12px; margin-top: 0.25rem; max-height: 200px; overflow-y: auto; z-index: 10; opacity: 0; transform: scaleY(0.95); pointer-events: none; transition: all 0.2s ease; box-shadow: var(--shadow-md); }
+        .custom-select-wrapper.open .custom-select-options { opacity: 1; transform: scaleY(1); pointer-events: auto; }
+        .custom-select-option { padding: 0.75rem 1rem; cursor: pointer; }
+        .custom-select-option:hover, .custom-select-option.selected { background-color: var(--light-gray); }
+        .form-options { display: flex; justify-content: flex-end; margin: -0.5rem 0 1.5rem 0; }
+        .form-options a { font-size: 0.875rem; color: var(--text-color); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .btn-submit { width: 100%; padding: 1rem; font-size: 1rem; font-weight: 600; color: var(--pure-white); background-color: var(--primary); border: none; border-radius: 12px; cursor: pointer; margin-top: 0.5rem; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn-submit:hover { background-color: #000; transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-submit:disabled { background-color: #D1D5DB; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-submit .spinner { display: none; }
+        .btn-submit.loading .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: rotation 1s linear infinite; }
+        .btn-submit.loading .btn-text { display: none; }
+        .divider { display: flex; align-items: center; text-align: center; color: var(--text-light); margin: 1.75rem 0; font-size: 0.8rem; font-weight: 500; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-gray); }
+        .divider:not(:empty)::before { margin-right: .75em; }
+        .divider:not(:empty)::after { margin-left: .75em; }
+        .btn-google { width: 100%; padding: 0.9rem 1rem; font-size: 0.95rem; font-weight: 600; color: var(--text-color); background-color: var(--pure-white); border: 1px solid var(--border-gray); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .btn-google:hover { background-color: var(--light-gray); }
+        .google-icon { width: 20px; height: 20px; margin-right: 0.75rem; }
+        .back-link { color: var(--text-color); font-weight: 600; text-decoration: none; cursor: pointer; text-align: center; margin-top: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        #loader { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(4px); }
+        .spinner { width: 48px; height: 48px; border: 5px solid rgba(16, 185, 129, 0.2); border-bottom-color: var(--accent); border-radius: 50%; animation: rotation 1s linear infinite; }
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); padding: 1rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; box-shadow: var(--shadow-lg); transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 1001; display: flex; align-items: center; gap: 0.75rem; }
+        #toast.show { bottom: 30px; }
+        #toast.success { background-color: #059669; }
+        #toast.error { background-color: var(--color-danger); }
+        #toast i { font-size: 1.25rem; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (min-width: 992px) {
+            html, body { height: auto; overflow: auto; }
+            body { background-color: #e9eef2; padding: 2rem; min-height: 100vh; }
+            .page-container { flex-direction: row; max-width: 1200px; height: 800px; max-height: 95vh; border-radius: 2rem; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2); }
+            .info-panel { display: flex; flex-direction: column; justify-content: space-between; flex-basis: 55%; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://ihtnas.com/assets/ihtnas-nav.png') center center / cover; padding: 4rem; color: var(--pure-white); }
+            .info-panel-header { font-size: 1.5rem; font-weight: 700; }
+            .info-panel-text h2 { font-size: 3.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+            .info-panel-text p { font-size: 1rem; max-width: 450px; line-height: 1.6; opacity: 0.8; }
+            .form-panel-wrapper { flex-basis: 45%; display: flex; align-items: center; justify-content: center; padding: 3rem; overflow-y: auto; position: static; flex-grow: 0; }
+            .page { width: 100%; max-width: 400px; padding: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="overlay" id="overlay"></div>
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebar">
-            <button class="sidebar-close-btn" id="sidebar-close-btn"><i class='bx bx-x'></i></button>
-            <div class="sidebar-header"><img src="" alt="Ihtnas Logo" class="logo-image"></div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="dashboard.html"><i class='bx bx-home-alt'></i> Dashboard</a></li>
-                    <li><a href="course.html" class="active"><i class='bx bx-book-open'></i> Course & Content</a></li>
-                    <li><a href="leaderboard.html"><i class='bx bx-bar-chart-alt-2'></i> Leaderboard</a></li>
-                    <li><a href="programs.html"><i class='bx bx-briefcase-alt-2'></i> Explore Programs</a></li>
-                    <li><a href="community.html"><i class='bx bx-group'></i> Community</a></li>
-                    <li><a href="help.html"><i class='bx bx-help-circle'></i> Help & Support</a></li>
-                </ul>
-            </nav>
-            <div class="profile-section" id="profile-section">
-                <div class="profile-skeleton" style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
-                    <div class="skeleton skeleton-avatar"></div>
-                    <div style="flex-grow: 1; min-width: 0;">
-                        <div class="skeleton skeleton-line" style="width: 70%; height: 14px; margin-bottom: 0.5rem;"></div>
-                        <div class="skeleton skeleton-line" style="width: 90%; height: 12px;"></div>
-                    </div>
+    <div id="loader"><div class="spinner"></div></div>
+    <div class="page-container" style="display:none;">
+        <div class="info-panel">
+            <div class="info-panel-header">IHTNAS</div>
+            <div class="info-panel-text"><h2>Unlock Your Potential.</h2><p>Join a community of learners and professionals to accelerate your career.</p></div>
+        </div>
+        <div class="form-panel-wrapper">
+            <div id="auth-page" class="page active">
+                <div class="form-toggle">
+                    <div id="toggle-slider"></div>
+                    <button id="show-login-btn" class="toggle-btn active">Sign In</button>
+                    <button id="show-signup-btn" class="toggle-btn">Sign Up</button>
                 </div>
-                <div class="profile-content-wrapper" style="display: none;">
-                    <img src="" alt="Profile Picture" class="profile-avatar">
-                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
-                    <div class="profile-options"><i class='bx bx-chevron-down'></i></div>
+                <div id="login-form-container">
+                    <div class="form-header"><h2>Welcome Back</h2><p>Please enter your details to sign in.</p></div>
+                    <form id="login-form">
+                        <div class="input-group"><label for="login-email">Email</label><div class="input-wrapper"><i class='bx bxs-envelope'></i><input type="email" id="login-email" required></div></div>
+                        <div class="input-group"><label for="login-password">Password</label><div class="input-wrapper"><i class='bx bxs-lock-alt'></i><input type="password" id="login-password" required><i class='bx bx-hide toggle-password'></i></div></div>
+                        <div class="form-options"><a class="forgot-password">Forgot Password?</a></div>
+                        <button type="submit" class="btn-submit"><span class="btn-text">Sign In</span><span class="spinner"></span></button>
+                    </form>
                 </div>
+                <div id="signup-form-container" style="display: none;">
+                    <div class="form-header"><h2>Create Account</h2><p>Join us! It only takes a minute.</p></div>
+                    <form id="signup-form">
+                        <div class="input-group"><label for="signup-name">Full Name</label><div class="input-wrapper"><i class='bx bxs-user'></i><input type="text" id="signup-name" required></div></div>
+                        <div class="input-group"><label for="signup-email">Email</label><div class="input-wrapper"><i class='bx bxs-envelope'></i><input type="email" id="signup-email" required></div></div>
+                        <div class="input-group"><label for="signup-password">Password</label><div class="input-wrapper"><i class='bx bxs-lock-alt'></i><input type="password" id="signup-password" required><i class='bx bx-hide toggle-password'></i></div></div>
+                        <button type="submit" class="btn-submit"><span class="btn-text">Create Account</span><span class="spinner"></span></button>
+                    </form>
+                </div>
+                <div class="divider">OR</div>
+                <button type="button" class="btn-google" id="google-login-btn"><svg class="google-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.519-3.108-11.127-7.481l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,36.218,44,30.561,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>Sign in with Google</button>
             </div>
-            <div class="profile-popup" id="profile-popup">
-                <div class="popup-header">
-                    <img src="" alt="Profile Picture" class="profile-avatar">
-                    <div class="profile-details"><span class="profile-name"></span><span class="profile-email"></span></div>
-                </div>
-                <ul class="popup-list">
-                    <li><a href="profile.html"><i class='bx bx-user'></i> Profile</a></li>
-                    <li><a href="#" class="logout" id="logout-btn"><i class='bx bx-log-out'></i> Logout</a></li>
-                </ul>
+            <div id="forgot-password-page" class="page">
+                <div class="form-header"><h2>Reset Password</h2><p>Enter your email to receive a password reset link.</p></div>
+                <form id="forgot-password-form">
+                    <div class="input-group"><label for="forgot-email">Email</label><div class="input-wrapper"><i class='bx bxs-envelope'></i><input type="email" id="forgot-email" required></div></div>
+                    <button type="submit" class="btn-submit"><span class="btn-text">Send Reset Link</span><span class="spinner"></span></button>
+                    <a class="back-link"><i class='bx bx-arrow-back'></i> Back to Sign In</a>
+                </form>
             </div>
-        </aside>
-        <main class="main-area">
-            <header class="main-header">
-                <i class='bx bx-menu menu-toggle' id="menu-toggle"></i>
-                <h1 id="header-title">Course & Content</h1>
-            </header>
-            <div id="skeleton-loader">
-                <section class="hero-section">
-                     <h1 class="hero-title"><span class="skeleton" style="width: 350px; height: 48px; display: inline-block; border-radius: 8px; background-color: rgba(255,255,255,0.1);"></span></h1>
-                     <div class="fc-progress-container">
-                         <div class="skeleton-line" style="width: 100%; height: 8px; background-color: rgba(255,255,255,0.2);"></div>
-                     </div>
-                </section>
-                <div class="content-body">
-                    <div class="main-content">
-                        <div class="pill-nav-container">
-                            <div class="skeleton-pill-nav">
-                                <div class="skeleton-pill"></div>
-                                <div class="skeleton-pill"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="user-details-page" class="page">
+                <div class="form-header"><h2>Complete Your Profile</h2><p>Just a few more details to get you started.</p></div>
+                <form id="user-details-form">
+                    <div class="input-group"><label for="user-detail-name">Full Name</label><div class="input-wrapper"><i class='bx bxs-user'></i><input type="text" id="user-detail-name" required></div></div>
+                    <div class="input-group"><label for="user-detail-rollno">Roll No.</label><div class="input-wrapper"><i class='bx bxs-id-card'></i><input type="text" id="user-detail-rollno" required></div></div>
+                    <div class="input-group"><label for="user-detail-dob">Date of Birth</label><div class="input-wrapper"><i class='bx bxs-calendar'></i><input type="date" id="user-detail-dob" required></div></div>
+                    <div class="input-group"><label>Mobile Number</label><div class="input-wrapper"><i class='bx bxs-phone'></i><input type="tel" id="user-detail-phone" required></div></div>
+                    <div class="input-group"><label for="user-detail-college">College</label><div class="custom-select-wrapper" id="college-select-wrapper"><div class="custom-select-trigger" data-value="">Select your college <i class='bx bx-chevron-down'></i></div><div class="custom-select-options"></div></div></div>
+                    <div class="input-group"><label for="user-detail-branch">Branch</label><div class="custom-select-wrapper" id="branch-select-wrapper"><div class="custom-select-trigger disabled" data-value="">Select a college first <i class='bx bx-chevron-down'></i></div><div class="custom-select-options"></div></div></div>
+                    <button type="submit" class="btn-submit"><span class="btn-text">Save & Continue</span><span class="spinner"></span></button>
+                </form>
             </div>
-            <div id="real-content" style="display:none;">
-                 <section class="hero-section" id="hero-section" style="display: none;">
-                    <h1 class="hero-title" id="hero-title"></h1>
-                    <div class="fc-progress-container">
-                        <div class="fc-progress-info">
-                            <span id="progress-text-details">0/0 Items Completed</span>
-                            <span id="progress-text-percent">0%</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress" id="hero-progress-bar"></div></div>
-                    </div>
-                    <a href="#" class="btn-continue" id="hero-continue-btn">
-                        <span id="continue-btn-text">Continue</span>
-                        <i class='bx bx-play-circle btn-icon'></i>
-                    </a>
-                </section>
-                <div class="content-body" id="content-body" style="display: none;">
-                    <div class="main-content">
-                        <div class="pill-nav-container">
-                            <div class="pill-nav">
-                                <div id="pill-slider"></div>
-                                <button id="courseTab" class="nav-tab active">Curriculum</button>
-                                <button id="assessmentsTab" class="nav-tab">Assessments</button>
-                            </div>
-                        </div>
-                        <div id="courseContent" class="content-section active"></div>
-                        <div id="assessmentsContent" class="content-section"></div>
-                    </div>
-                    <aside class="content-sidebar">
-                        <div id="sidebarCard" class="sidebar-card">
-                            <h4>Course Progress</h4>
-                            <div class="stat-grid">
-                                <div class="stat-item"><div class="stat-value" id="stat-lessons">0/0</div><div class="stat-label">Lessons</div></div>
-                                <div class="stat-item"><div class="stat-value" id="stat-completed">0%</div><div class="stat-label">Completed</div></div>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-                <div class="enrollment-container" id="enrollment-prompt" style="display: none;">
-                    <h1>Welcome to the Portal!</h1>
-                    <p>You are not yet enrolled in any courses. Enroll now to start your learning journey.</p>
-                    <a href="course-enroll.html" class="btn-continue">Enroll in a Course</a>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
-    
+    <div id="toast"></div>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const firebaseConfig = {
@@ -252,216 +164,226 @@
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
             const db = firebase.firestore();
-            const DEFAULT_AVATAR = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWxmiQqKsGu4P4FulnB-hDH6_RyTFPzHo67Q&s';
-            
-            let currentUser = null;
-            let courseId = null;
+            const ADMIN_EMAIL = "harshavardhanjw@gmail.com";
 
-            const setupEventListeners = () => {
-                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-                const profileSection = document.getElementById('profile-section');
-                const profilePopup = document.getElementById('profile-popup');
-                profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
-                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
-                const sidebar = document.getElementById('sidebar');
-                const menuToggle = document.getElementById('menu-toggle');
-                const closeBtn = document.getElementById('sidebar-close-btn');
-                const overlay = document.getElementById('overlay');
-                const toggleMenu = () => { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); };
-                menuToggle.addEventListener('click', toggleMenu);
-                closeBtn.addEventListener('click', toggleMenu);
-                overlay.addEventListener('click', toggleMenu);
-                const tabs = document.querySelectorAll('.nav-tab');
-                const slider = document.getElementById('pill-slider');
-                function moveSlider(tab) { if(tab && slider) { slider.style.width = `${tab.offsetWidth}px`; slider.style.left = `${tab.offsetLeft}px`; }}
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', (e) => {
-                        tabs.forEach(t => t.classList.remove('active'));
-                        e.currentTarget.classList.add('active');
-                        moveSlider(e.currentTarget);
-                        const isCourseTab = e.currentTarget.id === 'courseTab';
-                        document.getElementById('courseContent').classList.toggle('active', isCourseTab);
-                        document.getElementById('assessmentsContent').classList.toggle('active', !isCourseTab);
-                    });
-                });
+            const dom = {
+                pages: document.querySelectorAll('.page'), authPage: document.getElementById('auth-page'),
+                forgotPasswordPage: document.getElementById('forgot-password-page'), userDetailsPage: document.getElementById('user-details-page'),
+                loginFormContainer: document.getElementById('login-form-container'), signupFormContainer: document.getElementById('signup-form-container'),
+                loginForm: document.getElementById('login-form'), signupForm: document.getElementById('signup-form'),
+                forgotPasswordForm: document.getElementById('forgot-password-form'), userDetailsForm: document.getElementById('user-details-form'),
+                showLoginBtn: document.getElementById('show-login-btn'), showSignupBtn: document.getElementById('show-signup-btn'),
+                googleLoginBtn: document.getElementById('google-login-btn'), forgotPasswordLink: document.querySelector('.forgot-password'),
+                backToLoginLink: document.querySelector('.back-link'),
+                collegeSelectWrapper: document.getElementById('college-select-wrapper'), branchSelectWrapper: document.getElementById('branch-select-wrapper'),
+                loader: document.getElementById('loader'), toast: document.getElementById('toast'),
+                toggleSlider: document.getElementById('toggle-slider'),
+                pageContainer: document.querySelector('.page-container')
             };
 
-            const updateProfileUI = (userProfile) => {
-                const logoUrl = localStorage.getItem('dashboardLogoUrl');
-                if(logoUrl) document.querySelector('.logo-image').src = logoUrl;
-                const profileToUse = userProfile || JSON.parse(localStorage.getItem('dashboardUserProfile'));
-                if(profileToUse) {
-                    document.querySelectorAll('.profile-avatar').forEach(el => {
-                        el.src = profileToUse.photoURL || DEFAULT_AVATAR;
-                        el.onerror = () => { el.src = DEFAULT_AVATAR; };
-                    });
-                    document.querySelectorAll('.profile-name').forEach(el => el.textContent = profileToUse.displayName);
-                    document.querySelectorAll('.profile-email').forEach(el => el.textContent = profileToUse.email);
-                    document.querySelector('.profile-skeleton').style.display = 'none';
-                    document.querySelector('.profile-content-wrapper').style.display = 'flex';
+            let collegesData = [];
+
+            const showPage = (pageId) => {
+                dom.pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+            };
+
+            const toggleAuthForms = (showLogin) => {
+                dom.loginFormContainer.style.display = showLogin ? 'block' : 'none';
+                dom.signupFormContainer.style.display = !showLogin ? 'block' : 'none';
+                const targetBtn = showLogin ? dom.showLoginBtn : dom.showSignupBtn;
+                dom.toggleSlider.style.width = `${targetBtn.offsetWidth}px`;
+                dom.toggleSlider.style.left = `${targetBtn.offsetLeft}px`;
+            };
+
+            const showLoader = () => dom.loader.style.display = 'flex';
+            const hideLoader = () => dom.loader.style.display = 'none';
+            const showToast = (message, type = 'success') => {
+                dom.toast.innerHTML = `<i class='bx bxs-${type === 'success' ? 'check-circle' : 'error-circle'}'></i> ${message}`;
+                dom.toast.className = `show ${type}`;
+                setTimeout(() => { dom.toast.className = ''; }, 3000);
+            };
+
+            const createCustomDropdown = (wrapper, onSelect, placeholder, disabledPlaceholder) => {
+                const trigger = wrapper.querySelector('.custom-select-trigger');
+                const optionsContainer = wrapper.querySelector('.custom-select-options');
+                
+                const updateSelection = (value, text) => {
+                    trigger.innerHTML = `${text} <i class='bx bx-chevron-down'></i>`;
+                    trigger.dataset.value = value;
+                    wrapper.classList.remove('open');
+                    if (onSelect) onSelect(value);
+                };
+
+                const populate = (opts, isEnabled, preselectedVal = null) => {
+                    optionsContainer.innerHTML = '';
+                    let preselectedText = isEnabled ? placeholder : disabledPlaceholder;
+                    
+                    if(isEnabled) {
+                        opts.forEach(opt => {
+                            const optionEl = document.createElement('div');
+                            optionEl.className = 'custom-select-option';
+                            optionEl.textContent = opt.text;
+                            optionEl.dataset.value = opt.value;
+                            if (preselectedVal && opt.value === preselectedVal) {
+                                preselectedText = opt.text;
+                                optionEl.classList.add('selected');
+                            }
+                            optionEl.addEventListener('click', () => updateSelection(opt.value, opt.text));
+                            optionsContainer.appendChild(optionEl);
+                        });
+                    }
+                    trigger.innerHTML = `${preselectedText} <i class='bx bx-chevron-down'></i>`;
+                    trigger.dataset.value = preselectedVal || '';
+                    trigger.classList.toggle('disabled', !isEnabled);
+                };
+
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!trigger.classList.contains('disabled')) {
+                        wrapper.classList.toggle('open');
+                    }
+                });
+
+                return { populate, getValue: () => trigger.dataset.value };
+            };
+
+            const collegeDropdown = createCustomDropdown(dom.collegeSelectWrapper, (collegeName) => {
+                populateBranches(collegeName);
+            }, 'Select your college');
+
+            const branchDropdown = createCustomDropdown(dom.branchSelectWrapper, null, 'Select your branch', 'Select a college first');
+            
+            const populateColleges = async () => {
+                const collegesSnap = await db.collection('colleges').orderBy('name').get();
+                collegesData = collegesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const options = collegesData.map(c => ({ value: c.name, text: c.name }));
+                collegeDropdown.populate(options, true);
+            };
+
+            const populateBranches = (collegeName) => {
+                const college = collegesData.find(c => c.name === collegeName);
+                if (college && college.branches && college.branches.length > 0) {
+                    const options = college.branches.sort().map(b => ({ value: b, text: b }));
+                    branchDropdown.populate(options, true);
+                } else {
+                    branchDropdown.populate([], false);
+                }
+            };
+
+            const handleAuthFlow = async (user) => {
+                showLoader();
+                if (user.email === ADMIN_EMAIL) { window.location.href = 'admin.html'; return; }
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    window.location.href = 'course.html';
+                } else {
+                    document.getElementById('user-detail-name').value = user.displayName || '';
+                    await populateColleges();
+                    dom.pageContainer.style.display = "flex";
+                    showPage('user-details-page');
+                    hideLoader();
                 }
             };
             
-            setupEventListeners();
-            updateProfileUI();
-
-            auth.onAuthStateChanged(async (user) => {
+            auth.onAuthStateChanged(user => {
                 if (user) {
-                    currentUser = user;
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    if (!userDoc.exists) { window.location.href = 'index.html'; return; }
-                    updateProfileUI(userDoc.data());
-                    
-                    const urlParams = new URLSearchParams(window.location.search);
-                    courseId = urlParams.get('id');
-
-                    if (!courseId) {
-                        const enrollmentsQuery = await db.collection('enrollments').where('userId', '==', user.uid).orderBy('enrolledAt', 'desc').limit(1).get();
-                        if (!enrollmentsQuery.empty) {
-                            const latestEnrollment = enrollmentsQuery.docs[0].data();
-                            courseId = latestEnrollment.courseId;
-                            window.history.replaceState({}, '', `?id=${courseId}`);
-                        } else {
-                            document.getElementById('skeleton-loader').style.display = 'none';
-                            document.getElementById('real-content').style.display = 'block';
-                            document.getElementById('enrollment-prompt').style.display = 'block';
-                            document.getElementById('main-header').style.display = 'none';
-                            return;
-                        }
-                    }
-                    await loadAndRenderContent(user.uid, courseId);
+                    handleAuthFlow(user);
                 } else {
-                    window.location.href = 'index.html';
+                    dom.pageContainer.style.display = "flex";
+                    toggleAuthForms(true);
+                    hideLoader();
                 }
             });
 
-            const loadAndRenderContent = async (userId, courseId) => {
-                try {
-                    const [courseDoc, progressDoc] = await Promise.all([
-                        db.collection('courses').doc(courseId).get(),
-                        db.collection('users').doc(userId).collection('progressSummary').doc(courseId).get()
-                    ]);
-
-                    if (!courseDoc.exists) {
-                        document.querySelector('.main-area').innerHTML = '<h1>Course not found.</h1>';
-                        return;
-                    }
-
-                    const courseData = courseDoc.data();
-                    const progressData = progressDoc.exists ? progressDoc.data().completedLessons : {};
-                    const curriculum = courseData.curriculum || [];
-
-                    document.getElementById('header-title').textContent = courseData.name;
-                    
-                    if (curriculum.length === 0) {
-                        document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
-                        document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
-                    } else {
-                        renderHero(courseData, progressData);
-                        renderCurriculum(courseData, progressData);
-                    }
-                    renderSidebarStats(curriculum, progressData);
-
-                } catch(error) {
-                    console.error("Error loading content:", error);
-                    document.querySelector('.main-area').innerHTML = '<h1>Error loading course content.</h1>';
-                } finally {
-                    document.getElementById('skeleton-loader').style.display = 'none';
-                    document.getElementById('real-content').style.display = 'block';
-                    document.getElementById('hero-section').style.display = 'block';
-                    document.getElementById('content-body').style.display = 'grid';
-                    const activeTab = document.querySelector('.nav-tab.active');
-                    const slider = document.getElementById('pill-slider');
-                    if(activeTab && slider) {
-                        slider.style.width = `${activeTab.offsetWidth}px`;
-                        slider.style.left = `${activeTab.offsetLeft}px`;
-                    }
-                }
-            };
-
-            const renderHero = (courseData, progressData) => {
-                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
-                const totalItems = allItems.length;
-                const completedItems = allItems.filter(item => progressData[item.id]).length;
-                const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-                
-                document.getElementById('hero-title').textContent = courseData.name;
-                document.getElementById('hero-progress-bar').style.width = `${progressPercent}%`;
-                document.getElementById('progress-text-details').textContent = `${completedItems} / ${totalItems} Items Completed`;
-                document.getElementById('progress-text-percent').textContent = `${progressPercent}%`;
-                
-                const firstUncompleted = allItems.find(item => !progressData[item.id]);
-                const continueBtn = document.getElementById('hero-continue-btn');
-                
-                if (firstUncompleted) {
-                    continueBtn.href = `course-view.html?id=${courseId}`;
-                    document.getElementById('continue-btn-text').textContent = 'Continue Learning';
-                } else if (totalItems > 0) {
-                    continueBtn.href = `course-view.html?id=${courseId}`;
-                    document.getElementById('continue-btn-text').textContent = 'Review Course';
-                } else {
-                    continueBtn.style.display = 'none';
-                }
-            };
+            dom.showLoginBtn.addEventListener('click', () => toggleAuthForms(true));
+            dom.showSignupBtn.addEventListener('click', () => toggleAuthForms(false));
+            dom.forgotPasswordLink.addEventListener('click', () => showPage('forgot-password-page'));
+            dom.backToLoginLink.addEventListener('click', () => showPage('auth-page'));
             
-            const renderCurriculum = (courseData, progressData) => {
-                const container = document.getElementById('courseContent');
-                container.innerHTML = '';
-                const allItems = (courseData.curriculum || []).flatMap(c => c.items);
-                const firstUncompletedItem = allItems.find(item => !progressData[item.id]);
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.custom-select-wrapper')) {
+                    document.querySelectorAll('.custom-select-wrapper.open').forEach(el => el.classList.remove('open'));
+                }
+            });
 
-                courseData.curriculum.forEach(chapter => {
-                    if (!chapter.items || chapter.items.length === 0) return;
-                    
-                    const chapterGroup = document.createElement('div');
-                    chapterGroup.className = 'chapter-group';
-                    chapterGroup.innerHTML = `<h3 class="chapter-title">${chapter.chapterTitle}</h3><div class="content-list"></div>`;
-                    const itemsContainer = chapterGroup.querySelector('.content-list');
-
-                    chapter.items.forEach(item => {
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        const isCompleted = progressData[item.id];
-                        const isNext = firstUncompletedItem && item.id === firstUncompletedItem.id;
-                        let status, prefixClass, buttonHtml = '', statusIcon = '', iconClass = '';
-
-                        iconClass = item.type === 'quiz' ? 'bxs-help-circle' : 'bxs-file-blank';
-                        
-                        if (isCompleted) {
-                            status = 'completed'; prefixClass = 'card-prefix--completed'; statusIcon = `<div class="card-status-icon"><i class="bx bxs-check-circle"></i></div>`;
-                            buttonHtml = '<button class="card-button">View</button>';
-                        } else if (isNext) {
-                            status = 'next'; prefixClass = 'card-prefix--default';
-                            buttonHtml = `<button class="card-button">Start</button>`;
-                        } else {
-                            status = 'locked'; prefixClass = 'card-prefix--locked';
-                            buttonHtml = '<button class="card-button card-button--locked">Locked</button>';
-                        }
-                        
-                        card.dataset.status = status;
-                        if(status !== 'locked') {
-                            card.onclick = () => window.location.href = `course-view.html?id=${courseId}`;
-                        }
-                        
-                        card.innerHTML = `
-                            <div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
-                            <div class="card-info"><p class="card-title">${item.title}</p></div>
-                            ${statusIcon}${buttonHtml}`;
-                        itemsContainer.appendChild(card);
-                    });
-                    container.appendChild(chapterGroup);
+            document.querySelectorAll('.toggle-password').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const input = btn.previousElementSibling;
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    btn.classList.toggle('bx-show');
+                    btn.classList.toggle('bx-hide');
                 });
+            });
+
+            const setLoadingState = (form, isLoading) => {
+                const btn = form.querySelector('.btn-submit');
+                btn.disabled = isLoading;
+                btn.classList.toggle('loading', isLoading);
             };
 
-            const renderSidebarStats = (curriculum, progressData) => {
-                const allItems = curriculum.flatMap(c => c.items);
-                const totalItems = allItems.length;
-                const completedItems = allItems.filter(item => progressData[item.id]).length;
-                const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            dom.googleLoginBtn.addEventListener('click', () => {
+                showLoader();
+                auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => { showToast('Google Sign-In failed.', 'error'); hideLoader(); });
+            });
+
+            dom.loginForm.addEventListener('submit', (e) => {
+                e.preventDefault(); setLoadingState(e.target, true);
+                auth.signInWithEmailAndPassword(dom.loginForm['login-email'].value, dom.loginForm['login-password'].value)
+                    .catch(err => { showToast('Invalid email or password.', 'error'); setLoadingState(e.target, false); });
+            });
+
+            dom.signupForm.addEventListener('submit', (e) => {
+                e.preventDefault(); setLoadingState(e.target, true);
+                const name = dom.signupForm['signup-name'].value;
+                const email = dom.signupForm['signup-email'].value;
+                const password = dom.signupForm['signup-password'].value;
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(userCred => userCred.user.updateProfile({ displayName: name }))
+                    .catch(err => { showToast(err.message, 'error'); setLoadingState(e.target, false); });
+            });
+
+            dom.forgotPasswordForm.addEventListener('submit', (e) => {
+                e.preventDefault(); setLoadingState(e.target, true);
+                auth.sendPasswordResetEmail(dom.forgotPasswordForm['forgot-email'].value)
+                    .then(() => { showToast('Password reset link sent.'); showPage('auth-page'); })
+                    .catch(err => { showToast('Could not send email.', 'error'); })
+                    .finally(() => setLoadingState(e.target, false));
+            });
+
+            dom.userDetailsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const currentUser = auth.currentUser;
+                if (!currentUser) return;
                 
-                document.getElementById('stat-lessons').textContent = `${completedItems}/${totalItems}`;
-                document.getElementById('stat-completed').textContent = `${progressPercent}%`;
-            };
+                setLoadingState(e.target, true);
+
+                const userData = {
+                    uid: currentUser.uid, displayName: document.getElementById('user-detail-name').value.trim(),
+                    email: currentUser.email, photoURL: currentUser.photoURL,
+                    rollNo: document.getElementById('user-detail-rollno').value.trim(),
+                    dob: document.getElementById('user-detail-dob').value,
+                    phone: `+91${document.getElementById('user-detail-phone').value.trim()}`,
+                    college: collegeDropdown.getValue(), branch: branchDropdown.getValue(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                if(!userData.college || !userData.branch) {
+                    showToast('Please select your college and branch.', 'error');
+                    setLoadingState(e.target, false);
+                    return;
+                }
+
+                try {
+                    await db.collection('users').doc(currentUser.uid).set(userData);
+                    window.location.href = 'course.html';
+                } catch (error) {
+                    showToast("Could not save profile.", 'error');
+                    setLoadingState(e.target, false);
+                }
+            });
+
         });
     </script>
 </body>
