@@ -259,7 +259,7 @@
                 const profileSection = document.getElementById('profile-section');
                 const profilePopup = document.getElementById('profile-popup');
                 profileSection.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('active'); profileSection.classList.toggle('active'); });
-                document.addEventListener('click', e => { if (!profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
+                document.addEventListener('click', e => { if (profileSection && !profileSection.contains(e.target)) { profilePopup.classList.remove('active'); profileSection.classList.remove('active'); } });
                 const sidebar = document.getElementById('sidebar');
                 const menuToggle = document.getElementById('menu-toggle');
                 const closeBtn = document.getElementById('sidebar-close-btn');
@@ -294,8 +294,10 @@
                     });
                     document.querySelectorAll('.profile-name').forEach(el => el.textContent = profileToUse.displayName);
                     document.querySelectorAll('.profile-email').forEach(el => el.textContent = profileToUse.email);
-                    document.querySelector('.profile-skeleton').style.display = 'none';
-                    document.querySelector('.profile-content-wrapper').style.display = 'flex';
+                    const skeleton = document.querySelector('.profile-skeleton');
+                    if (skeleton) skeleton.style.display = 'none';
+                    const wrapper = document.querySelector('.profile-content-wrapper');
+                    if (wrapper) wrapper.style.display = 'flex';
                 }
             };
             
@@ -334,11 +336,10 @@
 
             const loadAndRenderContent = async (userId, courseId) => {
                 try {
-                    const [courseDoc, progressDoc, examsSnap, codeAssignmentsSnap] = await Promise.all([
+                    const [courseDoc, progressDoc, assessmentsDoc] = await Promise.all([
                         db.collection('courses').doc(courseId).get(),
                         db.collection('users').doc(userId).collection('progressSummary').doc(courseId).get(),
-                        db.collection('exams').where('courseId', '==', courseId).get(),
-                        db.collection('codeAssignments').where('courseId', '==', courseId).get()
+                        db.collection('courseAssessments').doc(courseId).get()
                     ]);
 
                     if (!courseDoc.exists) {
@@ -347,12 +348,13 @@
                     }
 
                     const courseData = courseDoc.data();
-                    const progressData = progressDoc.exists ? (progressDoc.data().completedItems || {}) : {};
+                    const progressData = progressDoc.exists ? progressDoc.data().completedItems : {};
                     const curriculum = courseData.curriculum || [];
+                    const assessments = assessmentsDoc.exists ? assessmentsDoc.data() : { mcqExams: [], codeAssignments: [] };
 
                     document.getElementById('header-title').textContent = courseData.name;
                     
-                    if (curriculum.length === 0 && examsSnap.empty && codeAssignmentsSnap.empty) {
+                    if (curriculum.length === 0 && (!assessments.mcqExams || assessments.mcqExams.length === 0) && (!assessments.codeAssignments || assessments.codeAssignments.length === 0)) {
                         document.getElementById('hero-title').textContent = courseData.name;
                         document.getElementById('courseContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">Content for this course is being prepared and will be available soon.</p>';
                         document.getElementById('assessmentsContent').innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-secondary);">No assessments available yet.</p>';
@@ -360,10 +362,7 @@
                     } else {
                         renderHero(courseData, progressData);
                         renderCurriculum(courseData, progressData);
-                        
-                        const allExams = examsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        const allCodeAssignments = codeAssignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderAssessments(allExams, allCodeAssignments, progressData);
+                        renderAssessments(assessments, progressData, courseData);
                     }
                     renderSidebarStats(curriculum, progressData);
 
@@ -403,10 +402,10 @@
                 const continueBtn = document.getElementById('hero-continue-btn');
                 
                 if (firstUncompleted) {
-                    continueBtn.href = `course-view.html?courseId=${courseId}&itemId=${firstUncompleted.id}`;
+                    continueBtn.href = `${courseData.playerPage}?courseId=${courseId}&itemId=${firstUncompleted.id}`;
                     document.getElementById('continue-btn-text').textContent = 'Continue Learning';
                 } else {
-                    continueBtn.href = `course-view.html?courseId=${courseId}&itemId=${allItems[0].id}`;
+                    continueBtn.href = `${courseData.playerPage}?courseId=${courseId}&itemId=${allItems[0].id}`;
                     document.getElementById('continue-btn-text').textContent = 'Review Course';
                 }
             };
@@ -447,7 +446,7 @@
                         
                         card.dataset.status = status;
                         if(status !== 'locked') {
-                            card.onclick = () => window.location.href = `course-view.html?courseId=${courseId}&itemId=${item.id}`;
+                            card.onclick = () => window.location.href = `${courseData.playerPage}?courseId=${courseId}&itemId=${item.id}`;
                         }
                         
                         card.innerHTML = `
@@ -459,14 +458,14 @@
                     container.appendChild(chapterGroup);
                 });
             };
-            
-            const renderAssessments = (exams, codeAssignments, progressData) => {
+
+            const renderAssessments = (assessments, progressData, courseData) => {
                 const container = document.getElementById('assessmentsContent');
                 container.innerHTML = '';
                 
                 const allAssessments = [
-                    ...exams.map(e => ({ ...e, type: 'exam' })),
-                    ...codeAssignments.map(a => ({ ...a, type: 'code' }))
+                    ...(assessments.mcqExams || []).map(e => ({ ...e, type: 'exam' })),
+                    ...(assessments.codeAssignments || []).map(a => ({ ...a, type: 'code' }))
                 ];
 
                 if (allAssessments.length === 0) {
@@ -482,37 +481,25 @@
                 allAssessments.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'card';
-                    let buttonText = '', isCompleted = false, isLocked = false, metaText = '';
-
-                    isCompleted = progressData[item.id] === true;
-                    isLocked = item.isLocked;
+                    const isCompleted = progressData[item.id];
+                    let buttonText, metaText, iconClass, link;
 
                     if (item.type === 'exam') {
-                        metaText = `${item.questions.length} Questions • ${item.duration / 60} min`;
-                        if (isCompleted) {
-                            buttonText = 'View Results';
-                            card.onclick = () => window.location.href = `exam.html?id=${item.id}`;
-                        } else {
-                            buttonText = isLocked ? 'Locked' : 'Start Exam';
-                            if (!isLocked) card.onclick = () => window.location.href = `exam.html?id=${item.id}`;
-                        }
+                        iconClass = 'bxs-graduation';
+                        metaText = `${item.questionCount || 0} Questions • ${item.duration / 60} min`;
+                        link = `${courseData.mcqExamPage}?id=${item.id}`;
                     } else { 
+                        iconClass = 'bxs-terminal';
                         metaText = `Coding Challenge • ${item.duration / 60} min`;
-                         if (isCompleted) {
-                            buttonText = 'View Results';
-                            card.onclick = () => window.location.href = `code.html?id=${item.id}`;
-                        } else {
-                            buttonText = isLocked ? 'Locked' : 'Start Code';
-                            if (!isLocked) card.onclick = () => window.location.href = `code.html?id=${item.id}`;
-                        }
+                        link = `${courseData.codeExamPage}?id=${item.id}`;
                     }
-
-                    const iconClass = item.type === 'exam' ? 'bxs-graduation' : 'bxs-terminal';
-                    card.dataset.status = isLocked && !isCompleted ? 'locked' : (isCompleted ? 'completed' : 'next');
-                    const prefixClass = isLocked && !isCompleted ? 'card-prefix--locked' : (isCompleted ? 'card-prefix--completed' : 'card-prefix--default');
+                    
+                    buttonText = isCompleted ? 'View Results' : 'Start';
+                    card.dataset.status = isCompleted ? 'completed' : 'next';
+                    const prefixClass = isCompleted ? 'card-prefix--completed' : 'card-prefix--default';
                     const statusIcon = isCompleted ? `<div class="card-status-icon"><i class="bx bxs-check-circle"></i></div>` : '';
-                    const buttonClass = isLocked && !isCompleted ? 'card-button--locked' : '';
 
+                    card.onclick = () => window.location.href = link;
                     card.innerHTML = `
                         <div class="card-prefix ${prefixClass}"><i class='bx ${iconClass}'></i></div>
                         <div class="card-info">
@@ -520,13 +507,12 @@
                             <p class="card-meta">${metaText}</p>
                         </div>
                         ${statusIcon}
-                        <button class="card-button ${buttonClass}">${buttonText}</button>`;
+                        <button class="card-button">${buttonText}</button>`;
                     
                     listContainer.appendChild(card);
                 });
                 container.appendChild(assessmentGroup);
             };
-
 
             const renderSidebarStats = (curriculum, progressData) => {
                 const allItems = curriculum.flatMap(c => c.items);
