@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course & Content - Exam Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --body-bg: #F9FAFB; --widget-bg: #FFFFFF; --border-color: #E5E7EB;
+            --text-primary: #002726; --text-secondary: #6B7280; --brand-green: #33C375;
+            --hover-bg: #F3F4F6; --danger-color: #EF4444;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid var(--hover-bg);
+            border-bottom-color: var(--brand-green);
+            border-radius: 50%;
+            display: inline-block;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-text {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .enrollment-prompt-widget {
+            background-color: var(--widget-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        .enrollment-prompt h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .enrollment-prompt p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .btn-continue {
+            background: var(--text-primary);
+            color: #FFFFFF;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-continue:hover {
+            background-color: #001A19;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading-state">
+            <div class="spinner"></div>
+            <p class="status-text">Finding your course...</p>
+        </div>
+        
+        <div id="enrollment-prompt" class="enrollment-prompt-widget" style="display: none;">
+            <h3>Welcome to the Portal!</h3>
+            <p>You are not yet enrolled in any courses. Enroll now to start your learning journey.</p>
+            <a href="course-enroll.html" class="btn-continue">Enroll in a Course</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const firebaseConfig = {
+                apiKey: "AIzaSyCSW52Vl2UIC7eeM4uXKcSPdHflZCl3WJQ",
+                authDomain: "exam-2e799.firebaseapp.com",
+                projectId: "exam-2e799",
+                storageBucket: "exam-2e799.firebasestorage.app",
+                messagingSenderId: "472506328501",
+                appId: "1:472506328501:web:f239c42baed2f4b9f925fc",
+                measurementId: "G-NX21HT3JKT"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            const loadingState = document.getElementById('loading-state');
+            const enrollmentPrompt = document.getElementById('enrollment-prompt');
+
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    try {
+                        const enrollmentsQuery = await db.collection('enrollments')
+                            .where('userId', '==', user.uid)
+                            .orderBy('enrolledAt', 'desc')
+                            .limit(1)
+                            .get();
+
+                        if (!enrollmentsQuery.empty) {
+                            const latestEnrollment = enrollmentsQuery.docs[0].data();
+                            if (latestEnrollment.subjectPage && latestEnrollment.courseId) {
+                                window.location.replace(`${latestEnrollment.subjectPage}?id=${latestEnrollment.courseId}`);
+                            } else {
+                                throw new Error("Enrollment data is incomplete.");
+                            }
+                        } else {
+                            loadingState.style.display = 'none';
+                            enrollmentPrompt.style.display = 'block';
+                        }
+                    } catch (error) {
+                        console.error("Redirection logic failed:", error);
+                        loadingState.querySelector('.status-text').textContent = 'Error finding your course. Please try again later.';
+                    }
+                } else {
+                    window.location.replace('index.html');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
