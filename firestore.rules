@@ -1,0 +1,181 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // =================================
+    //  HELPER FUNCTIONS
+    // =================================
+    function isAdmin() {
+      // The admin can do almost anything.
+      return request.auth.token.email == "harshavardhanjw@gmail.com";
+    }
+
+    function isAuthenticated() {
+      // Checks if the user is signed in.
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      // Checks if the current user is the owner of the document.
+      return request.auth.uid == userId;
+    }
+
+    // =================================
+    //  GLOBAL ADMIN RULE
+    // =================================
+    // The admin has full read/write access to the entire database.
+    // This simplifies the rules below, as we only need to define user permissions.
+    match /{path=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // =================================
+    //  USER DATA & PROGRESS
+    // =================================
+    match /users/{userId} {
+      // Any signed-in user can read any other user's public profile (for leaderboards, etc.).
+      allow read: if isAuthenticated();
+      // A user can only create or update their own document.
+      allow create, update: if isOwner(userId);
+      // Nobody can delete user documents.
+      allow delete: if false;
+    }
+
+    // NEW: Rule for the optimized progress summary.
+    match /users/{userId}/progressSummary/{courseId} {
+      // A user can read their own progress summary.
+      allow read: if isOwner(userId);
+      // A user can create or update their own progress summary.
+      allow write: if isOwner(userId);
+    }
+    
+    // DEPRECATED: Old progress rule. You can remove this after migration.
+    match /users/{userId}/progress/{progressId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Rule for user-specific scores (like attendance) stored in a subcollection.
+    match /users/{userId}/scores/{scoreId} {
+      allow read: if isOwner(userId);
+      // Only admin can write attendance scores.
+      allow write: if isAdmin(); 
+    }
+
+    // =================================
+    //  COURSE & CONTENT COLLECTIONS
+    // =================================
+    match /courses/{courseId} {
+      // Any signed-in user can read course structures.
+      allow read: if isAuthenticated();
+      // Only admin can modify courses.
+      allow write: if isAdmin();
+    }
+    
+    match /lessons/{lessonId} {
+      // Any signed-in user can read lesson content and quiz questions.
+      allow read: if isAuthenticated();
+      // Only admin can modify lessons/quizzes.
+      allow write: if isAdmin();
+    }
+
+    match /enrollments/{enrollmentId} {
+      // Any user can read their own enrollment status.
+      allow read: if isAuthenticated();
+      // A user can only create an enrollment for themselves.
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Only admin can delete enrollments.
+      allow delete: if isAdmin();
+    }
+
+    // =================================
+    //  ASSESSMENT & SCORE COLLECTIONS
+    // =================================
+
+    // Standalone MCQ Exams (Questions Only)
+    match /exams/{examId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Standalone Code Assignments (Public Test Cases Only)
+    match /codeAssignments/{assignmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /codeProblems/{problemId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // --- SECURE SOLUTION COLLECTIONS ---
+    // These collections hold the answers/hidden tests. Users can read a specific
+    // document when they submit, but CANNOT list the whole collection.
+    match /quizSolutions/{lessonId} {
+      allow get: if isAuthenticated(); // 'get' allows reading a single doc, 'list' allows querying multiple.
+      allow list, write: if isAdmin();
+    }
+    match /examSolutions/{examId} {
+      allow get: if isAuthenticated();
+      allow list, write: if isAdmin();
+    }
+    match /codeProblemSolutions/{problemId} {
+      allow get: if isAuthenticated();
+      allow list, write: if isAdmin();
+    }
+    
+    // --- SCORE SUBMISSION COLLECTIONS ---
+    match /scores/{scoreId} {
+      // Any signed-in user can read any score (for leaderboards).
+      allow read: if isAuthenticated();
+      // A user can only create a score for themselves.
+      allow create: if isOwner(request.resource.data.userId);
+      // Only admin can delete scores.
+      allow delete: if isAdmin();
+      // Users cannot update their scores after submission.
+      allow update: if false; 
+    }
+    
+    match /codeAssignmentScores/{scoreId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(request.resource.data.userId);
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+    
+    match /codeScores/{scoreId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(request.resource.data.userId);
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // =================================
+    //  UTILITY & SUPPORT COLLECTIONS
+    // =================================
+    match /colleges/{collegeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /tickets/{ticketId} {
+      // A user can read their own tickets.
+      allow read: if isOwner(resource.data.userId);
+      // A user can create their own ticket.
+      allow create: if isOwner(request.resource.data.userId);
+      // A user can update their ticket (e.g., add a message), but not change status.
+      // The admin can update anything.
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    match /resumes/{userId} {
+      // A user can only read and write their own resume.
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
